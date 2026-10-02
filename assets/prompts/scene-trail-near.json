@@ -1,0 +1,6 @@
+{
+  "prompt": "A wide, horizontally tileable foreground layer for a side-scrolling scene, in exactly the same art style and palette as the reference image: soft flat 2D illustration, gentle cel shading, no outlines. Straight side view of a cosy forest trail: a sandy dirt path runs straight across the whole image from left edge to right edge in the bottom quarter, with soft green grass below it and along it. Behind the path, spaced out along the whole width: rounded leafy trees of different sizes with brown trunks, fluffy bushes, ferns, a few red-and-white mushrooms, small rocks and pastel wildflowers. The trees reach up to about the top 20 percent. Leave the path itself clear so a character can walk along it. The left and right edges must match so the image repeats seamlessly side by side. Everything above and between the tree tops is one completely flat, solid crimson colour (#E00058), perfectly even, no sky, no clouds, no gradient. No characters, no text.",
+  "resolution": "2k",
+  "aspect_ratio": "2:1",
+  "quality": "medium"
+}

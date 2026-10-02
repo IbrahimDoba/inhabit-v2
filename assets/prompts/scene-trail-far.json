@@ -1,0 +1,6 @@
+{
+  "prompt": "A wide, horizontally tileable background layer for a side-scrolling scene, in exactly the same art style and palette as the reference image: soft flat 2D illustration, gentle cel shading, no outlines, pastel lavender, mint and soft green. Straight side view. The bottom 55 percent is a band of distant rolling lavender hills with soft rounded green forest silhouettes and a few rounded tree tops in front of them, all the way across from the left edge to the right edge with no gaps. The left and right edges must match so the image can repeat seamlessly side by side. Everything above the hills is one completely flat, solid crimson colour (#E00058), perfectly even, no clouds, no sun, no gradient. No path, no characters, no text.",
+  "resolution": "2k",
+  "aspect_ratio": "2:1",
+  "quality": "medium"
+}
