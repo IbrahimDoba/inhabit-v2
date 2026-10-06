@@ -15,6 +15,7 @@
 import {
   ENERGY_PER_HABIT,
   EXTRA_HABIT_DIAMONDS,
+  FULL_BAR_DIAMONDS,
   FIRST_JOURNEY_BONUS,
   GARDEN_PROPS,
   MAX_PROP_LEVEL,
@@ -63,6 +64,12 @@ export type CompanionState = {
   lastCheckIn: string | null;
   /** Plant types bought in the shop, by id. Starter plants are always available. */
   ownedSeeds?: string[];
+  /** Day the dragon was last tapped hello, for the daily quest. */
+  greetedOn?: string | null;
+  /** Daily quests claimed, for one day only. */
+  claimedDaily?: { day: string; ids: string[] };
+  /** One-time quests already claimed. */
+  claimedSpecial?: string[];
 };
 
 export type Mood = 'content' | 'happy' | 'proud' | 'sleepy';
@@ -71,7 +78,11 @@ export type CompanionEvent =
   | { type: 'energy'; gained: number; energy: number; fullBar: number }
   | { type: 'barFull' }
   | { type: 'grewUp'; from: Stage; to: Stage }
-  | { type: 'diamonds'; gained: number; reason: 'extraHabit' | 'journey' | 'welcomeBonus' }
+  | {
+      type: 'diamonds';
+      gained: number;
+      reason: 'extraHabit' | 'fullBar' | 'journey' | 'welcomeBonus' | 'quest';
+    }
   | { type: 'journeyStarted'; returnsAt: number }
   | { type: 'journeyReturned' }
   | { type: 'giftPlaced'; spot: GardenSpot; upgraded: boolean }
@@ -160,8 +171,10 @@ export function completeHabit(state: CompanionState, habitId: string, now: numbe
       fullCareToday: true,
       stageDays: next.stageDays + 1,
       totalFullCareDays: next.totalFullCareDays + 1,
+      diamonds: next.diamonds + FULL_BAR_DIAMONDS,
     };
     events.push({ type: 'barFull' });
+    events.push({ type: 'diamonds', gained: FULL_BAR_DIAMONDS, reason: 'fullBar' });
     next = growIfReady(next, events);
   }
 

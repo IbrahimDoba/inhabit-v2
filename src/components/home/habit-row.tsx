@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import type { Point } from '@/components/home/energy-bolts';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -21,80 +22,114 @@ type HabitRowProps = {
   /** What ticking it earns right now, e.g. "+5 ⚡" or "+1 💎". */
   reward: string;
   onToggle: () => void;
+  /** Ticking starts, with the tick's centre on screen, so energy can fly from it. */
+  onTickStart?: (from: Point) => void;
   /** Tapping the name opens the habit for editing. */
   onEdit?: () => void;
 };
 
-export function HabitRow({ emoji, label, done, reward, onToggle, onEdit }: HabitRowProps) {
+/** How long a ticked habit stays in place before moving to Done today. */
+const MOVE_AFTER_MS = 550;
+
+export function HabitRow({
+  emoji,
+  label,
+  done,
+  reward,
+  onToggle,
+  onTickStart,
+  onEdit,
+}: HabitRowProps) {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
   const press = useSharedValue(1);
   const float = useSharedValue(0);
   const [floating, setFloating] = useState<string | null>(null);
+  // Shows the tick straight away, then moves the habit once the tick has played.
+  const [ticking, setTicking] = useState(false);
+  const moveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const checkRef = useRef<View>(null);
+  useEffect(
+    () => () => {
+      if (moveTimer.current) clearTimeout(moveTimer.current);
+    },
+    [],
+  );
+  const shownDone = done || ticking;
 
   const toggle = () => {
+    if (ticking) return;
     press.set(withSequence(withSpring(0.8, { damping: 8 }), withSpring(1, { damping: 8 })));
-    if (!done && !reduceMotion) {
-      setFloating(reward);
-      float.set(0);
-      float.set(withTiming(1, { duration: 900, easing: Easing.out(Easing.cubic) }));
-      setTimeout(() => setFloating(null), 950);
+    if (done || reduceMotion) {
+      onToggle();
+      return;
     }
-    onToggle();
+    setTicking(true);
+    checkRef.current?.measureInWindow((x, y, w, h) =>
+      onTickStart?.({ x: x + w / 2, y: y + h / 2 }),
+    );
+    setFloating(reward);
+    float.set(0);
+    float.set(withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) }));
+    moveTimer.current = setTimeout(() => {
+      setFloating(null);
+      setTicking(false);
+      onToggle();
+    }, MOVE_AFTER_MS);
   };
 
-  const checkStyle = useAnimatedStyle(() => ({ transform: [{ scale: press.value }] }));
+  const checkStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: press.value }],
+  }));
   const floatStyle = useAnimatedStyle(() => ({
     opacity: 1 - float.value,
     transform: [{ translateY: -44 * float.value }, { scale: 0.8 + float.value * 0.4 }],
   }));
 
   return (
-    <View
-      style={[
-        styles.row,
-        { backgroundColor: done ? theme.primarySoft : theme.artCard },
-      ]}>
+    <Animated.View
+      style={[styles.row, { backgroundColor: shownDone ? theme.primarySoft : theme.artCard }]}>
       <Pressable
         onPress={onEdit}
         disabled={!onEdit}
         accessibilityRole="button"
         accessibilityLabel={`Edit ${label}`}
         style={styles.body}>
-      <View style={[styles.emojiWrap, { backgroundColor: theme.bubble }]}>
-        <ThemedText style={styles.emoji}>{emoji}</ThemedText>
-      </View>
-      <View style={styles.text}>
-        <ThemedText
-          themeColor={done ? 'inkSecondary' : 'ink'}
-          style={[styles.label, done && styles.doneLabel]}>
-          {label}
-        </ThemedText>
-        {!done ? (
-          <ThemedText type="small" themeColor="inkSecondary">
-            {reward}
+        <View style={[styles.emojiWrap, { backgroundColor: theme.bubble }]}>
+          <ThemedText style={styles.emoji}>{emoji}</ThemedText>
+        </View>
+        <View style={styles.text}>
+          <ThemedText
+            themeColor={shownDone ? 'inkSecondary' : 'ink'}
+            style={[styles.label, shownDone && styles.doneLabel]}>
+            {label}
           </ThemedText>
-        ) : null}
-      </View>
+          {!done ? (
+            <ThemedText type="small" themeColor="inkSecondary">
+              {reward}
+            </ThemedText>
+          ) : null}
+        </View>
       </Pressable>
       <Pressable
+        ref={checkRef}
         onPress={toggle}
         hitSlop={8}
         accessibilityRole="checkbox"
-        accessibilityState={{ checked: done }}
+        accessibilityState={{ checked: shownDone }}
         accessibilityLabel={label}
         accessibilityHint={done ? 'Tap to undo' : `Tap when done. ${reward}`}>
         <Animated.View
           style={[
             styles.check,
-            done
+            shownDone
               ? { backgroundColor: theme.primary, borderColor: theme.primary }
               : { backgroundColor: theme.bubble, borderColor: theme.primary },
             checkStyle,
           ]}>
           <ThemedText
             type="smallBold"
-            style={[styles.tick, { color: done ? theme.onPrimary : theme.primary }]}>
+            style={[styles.tick, { color: shownDone ? theme.onPrimary : theme.primary }]}>
             ✓
           </ThemedText>
         </Animated.View>
@@ -106,7 +141,7 @@ export function HabitRow({ emoji, label, done, reward, onToggle, onEdit }: Habit
           </Animated.View>
         ) : null}
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }
 

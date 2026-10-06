@@ -95,7 +95,7 @@ Garden phase:
 | 12 | ~~Plant stages and resting buds~~ | Done 2026-09-29 (sprout 0, growing 3, budding 7, bloom 14 completions; rests after 3 quiet days) |
 | 13 | ~~Journey gifts fill garden spots~~ | Done 2026-09-30 (7 gifts with their own spots, upgrades up to level 3, lantern glows at night) |
 | 14 | ~~Companion walks to the plant you tended~~ | Done 2026-10-01 (walks over, waters it, walks back) |
-| 15 | Quests and shop | Currency has somewhere to go |
+| 15 | ~~Quests and shop~~ | Done 2026-10-02 (4 daily quests, 7 milestones, seed shop) |
 
 Later: friends visiting gardens with one gift a day, paid garden themes previewed through friends, widget, accounts and sync.
 

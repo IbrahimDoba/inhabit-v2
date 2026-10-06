@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeOutDown, SlideInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Expressions, type Expression } from '@/constants/dragon';
@@ -39,7 +39,7 @@ export function Toast({ message }: { message: (ToastMessage & { id: number }) | 
   return (
     <Animated.View
       key={message.id}
-      entering={SlideInDown.springify().damping(16)}
+      entering={FadeInDown.duration(220)}
       exiting={FadeOutDown.duration(200)}
       style={[styles.toast, { backgroundColor: theme.momentDark }]}
       accessibilityLiveRegion="polite"

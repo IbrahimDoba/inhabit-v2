@@ -27,6 +27,9 @@ export const STAGE_RULES: Record<Stage, StageRules> = {
 /** Energy each habit gives. Custom sizes come later. */
 export const ENERGY_PER_HABIT = 5;
 
+/** Diamonds for filling the bar, once a day. */
+export const FULL_BAR_DIAMONDS = 10;
+
 /** A welcome bonus on top of the very first journey, so the shop is reachable early. */
 export const FIRST_JOURNEY_BONUS = 100;
 

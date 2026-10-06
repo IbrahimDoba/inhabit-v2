@@ -11,6 +11,7 @@ import {
 import { AppState } from 'react-native';
 
 import * as engine from '@/engine/companion';
+import * as quests from '@/engine/quests';
 import type { CompanionEvent, CompanionState, Result } from '@/engine/companion';
 import type { Stage } from '@/engine/rules';
 import { now as clockNow, useClockOffset } from '@/lib/clock';
@@ -35,6 +36,9 @@ type CompanionContextValue = {
   /** Records opening the app now (used by the dev week simulation). */
   checkIn: () => CompanionEvent[];
   buySeed: (seed: string, price: number) => CompanionEvent[];
+  /** Records tapping the dragon hello today. */
+  greet: () => CompanionEvent[];
+  claimQuest: (id: string, ctx: quests.QuestContext) => CompanionEvent[];
   /** The full-bar celebration waiting to show, from whichever screen filled the bar. */
   celebration: Celebration | null;
   dismissCelebration: () => void;
@@ -42,10 +46,14 @@ type CompanionContextValue = {
   reset: () => void;
 };
 
-export type Celebration = { grewUp: { from: Stage; to: Stage } | null };
+export type Celebration = {
+  grewUp: { from: Stage; to: Stage } | null;
+  /** Diamonds the full bar paid. */
+  diamonds: number;
+};
 
 /** Lets the energy bar finish filling before the celebration covers it. */
-const CELEBRATE_AFTER_MS = 900;
+const CELEBRATE_AFTER_MS = 1100;
 
 const CompanionContext = createContext<CompanionContextValue | null>(null);
 
@@ -75,7 +83,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     if (events.some((e) => e.type === 'barFull')) {
       const grew = events.find((e) => e.type === 'grewUp');
       const grewUp = grew?.type === 'grewUp' ? { from: grew.from, to: grew.to } : null;
-      setTimeout(() => setCelebration({ grewUp }), CELEBRATE_AFTER_MS);
+      const paid = events.find((e) => e.type === 'diamonds' && e.reason === 'fullBar');
+      const diamonds = paid?.type === 'diamonds' ? paid.gained : 0;
+      setTimeout(() => setCelebration({ grewUp, diamonds }), CELEBRATE_AFTER_MS);
     }
     return events;
   }, []);
@@ -111,6 +121,8 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       refresh: () => run(engine.refresh),
       checkIn: () => run(engine.checkIn),
       buySeed: (seed, price) => run((s, now) => engine.buySeed(s, seed, price, now)),
+      greet: () => run(quests.greet),
+      claimQuest: (id, ctx) => run((s, now) => quests.claimQuest(s, id, ctx, now)),
       celebration,
       dismissCelebration: () => setCelebration(null),
       devFinishJourney: () =>

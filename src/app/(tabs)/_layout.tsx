@@ -1,9 +1,13 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
+import { useQuests } from '@/hooks/use-quests';
 import { useTheme } from '@/hooks/use-theme';
+import { useWidgetSync } from '@/hooks/use-widget-sync';
 
 export default function TabsLayout() {
   const theme = useTheme();
+  const { claimable } = useQuests();
+  useWidgetSync();
 
   return (
     <NativeTabs
@@ -18,6 +22,8 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="quests">
         <NativeTabs.Trigger.Label>Quests</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'flag', selected: 'flag.fill' }} md="flag" />
+        {/* Rendered only when needed: the web build ignores `hidden`. */}
+        {claimable > 0 ? <NativeTabs.Trigger.Badge>{String(claimable)}</NativeTabs.Trigger.Badge> : null}
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="shop">

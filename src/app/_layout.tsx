@@ -82,6 +82,7 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="habit/[id]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="plant/[id]" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
         </Stack.Protected>
       </Stack>
       <StatusBar style={override ?? (isDark ? 'light' : 'dark')} />

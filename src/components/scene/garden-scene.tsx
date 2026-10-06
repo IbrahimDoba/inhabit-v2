@@ -1,5 +1,5 @@
-import { Image } from 'expo-image';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Image, type ImageSource } from 'expo-image';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
@@ -42,6 +42,8 @@ type GardenSceneProps = {
   gifts?: readonly GardenSpot[];
   /** A gift just brought home, which pops in. */
   newGift?: PropId | null;
+  /** The dragon has just come home from exploring: it walks in from the edge of the garden. */
+  arriving?: boolean;
   /** A plant for the dragon to walk over to and tend; a new `nonce` starts a new visit. */
   visit?: { key: string; nonce: number } | null;
   /** The dragon, placed standing on the meadow. A function receives how to draw it while it moves. */
@@ -51,7 +53,7 @@ type GardenSceneProps = {
 /** How the dragon should be drawn while the garden moves it around. */
 export type DragonMotion = { pose?: DragonPose; flip: boolean };
 
-type VisitPhase = 'home' | 'going' | 'tending' | 'returning';
+type VisitPhase = 'home' | 'arriving' | 'going' | 'tending' | 'returning';
 
 /** How long the dragon stays tending a plant before heading back. */
 const TEND_MS = 2600;
@@ -62,6 +64,10 @@ const MS_PER_POINT = 7;
  * from the can (ahead of it in the `water` pose) lands on the plant.
  */
 const WATER_REACH = 105;
+/** Walking home from the right edge of the garden takes this long. */
+const ARRIVE_MS = 2800;
+/** A gift's flight from the dragon's bundle to its spot. */
+const GIFT_FLIGHT_MS = 1000;
 
 export type GardenPlant = { key: string; sprite: PlantSprite; label: string; onPress: () => void };
 
@@ -107,6 +113,7 @@ export function GardenScene({
   plants = [],
   gifts = [],
   newGift = null,
+  arriving = false,
   visit = null,
   children,
 }: GardenSceneProps) {
@@ -119,18 +126,37 @@ export function GardenScene({
   const plantScale = Math.min(width / 393, 1.4);
 
   const reduceMotion = useReducedMotion();
-  const tx = useSharedValue(0);
+  // Coming home, the dragon starts just past the right edge.
+  const walksIn = arriving && !reduceMotion;
+  const tx = useSharedValue(walksIn ? width / 2 + 120 : 0);
   const ty = useSharedValue(0);
   const depth = useSharedValue(1);
-  const [phase, setPhase] = useState<VisitPhase>('home');
-  const [facingLeft, setFacingLeft] = useState(false);
+  const [phase, setPhase] = useState<VisitPhase>(walksIn ? 'arriving' : 'home');
+  const [facingLeft, setFacingLeft] = useState(walksIn);
+  // A new gift waits in the bundle, flies to its spot, then lands there.
+  const [landedGift, setLandedGift] = useState<PropId | null>(null);
+
+  useEffect(() => {
+    if (!walksIn) return;
+    tx.set(withTiming(0, { duration: ARRIVE_MS, easing: Easing.out(Easing.quad) }));
+    const timer = setTimeout(() => {
+      setPhase('home');
+      setFacingLeft(false);
+    }, ARRIVE_MS);
+    return () => clearTimeout(timer);
+    // Only on the first draw of the garden after the trip.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [tendAt, setTendAt] = useState<{ left: number; bottom: number; key: number } | null>(null);
 
   // Walk to the visited plant, tend it, walk back. A new visit restarts from wherever the dragon is.
   const visitIndex = visit ? plants.findIndex((p) => p.key === visit.key) : -1;
   const visitNonce = visit?.nonce;
+  // A visit from before the garden appeared (e.g. before exploring) is not replayed.
+  const staleNonce = useRef(visitNonce);
   useEffect(() => {
-    if (visitNonce === undefined || visitIndex < 0 || visitIndex >= PLANT_SPOTS.length) return;
+    if (visitNonce === undefined || visitNonce === staleNonce.current) return;
+    if (visitIndex < 0 || visitIndex >= PLANT_SPOTS.length) return;
     const spot = PLANT_SPOTS[visitIndex];
     const scale = spot.size * plantScale;
     const plantX = spot.x * width;
@@ -194,15 +220,45 @@ export function GardenScene({
     transform: [{ translateX: tx.get() }, { translateY: ty.get() }, { scale: depth.get() }],
   }));
 
-  // Side-view stroll to walk, the watering pose to tend, flipped to face the plant.
+  // A new gift flies from the bundle; when it lands it pops into its spot with a sparkle.
+  const giftSpot = newGift ? GIFT_SPOTS[newGift] : null;
+  useEffect(() => {
+    if (!newGift || !giftSpot) return;
+    const spot = giftSpot;
+    const scale = spot.size * plantScale;
+    const sprite = PROP_SPRITES[newGift];
+    const timer = setTimeout(
+      () => {
+        setLandedGift(newGift);
+        setTendAt({
+          left: spot.x * width,
+          bottom: spot.up * meadow + 6 + sprite.height * scale * 0.6,
+          key: Date.now(),
+        });
+      },
+      reduceMotion ? 0 : GIFT_FLIGHT_MS,
+    );
+    const clear = setTimeout(() => setTendAt(null), (reduceMotion ? 0 : GIFT_FLIGHT_MS) + 1800);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(clear);
+    };
+    // A new gift starts one flight.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newGift]);
+  const giftInFlight = newGift !== null && landedGift !== newGift;
+
+  // Home with the bundle, side-view stroll to walk, the watering pose to tend, flipped to face the way it goes.
   const motion: DragonMotion =
-    phase === 'going' || phase === 'returning'
+    phase === 'arriving'
+      ? { pose: 'walk', flip: facingLeft }
+      : phase === 'going' || phase === 'returning'
       ? { pose: 'stroll', flip: facingLeft }
       : phase === 'tending'
         ? { pose: 'water', flip: facingLeft }
         : { flip: false };
 
-  const placedGifts = gifts.map((gift) => {
+  const placedGifts = gifts.filter((gift) => !(giftInFlight && gift.prop === newGift)).map((gift) => {
     const spot = GIFT_SPOTS[gift.prop];
     const sprite = PROP_SPRITES[gift.prop];
     const scale = spot.size * plantScale;
@@ -278,6 +334,16 @@ export function GardenScene({
         {typeof children === 'function' ? children(motion) : children}
       </Animated.View>
       {front.map((p) => p.node)}
+      {giftInFlight && newGift && giftSpot && !reduceMotion ? (
+        <FlyingGift
+          key={newGift}
+          source={PROP_SPRITES[newGift].source}
+          width={PROP_SPRITES[newGift].width * giftSpot.size * plantScale}
+          height={PROP_SPRITES[newGift].height * giftSpot.size * plantScale}
+          from={{ x: width / 2 + 40, bottom: 34 + 170 }}
+          to={{ x: giftSpot.x * width, bottom: giftSpot.up * meadow + 6 }}
+        />
+      ) : null}
       {tendAt ? (
         <View style={[styles.tend, { left: tendAt.left, bottom: tendAt.bottom }]} pointerEvents="none">
           <TendSparkle key={tendAt.key} />
@@ -294,6 +360,46 @@ export function GardenScene({
         <Rect x={0} y={0} width={width} height={40} fill="url(#fade)" />
       </Svg>
     </View>
+  );
+}
+
+/** A gift popping out of the dragon's bundle and arcing over to its spot. */
+function FlyingGift({
+  source,
+  width,
+  height,
+  from,
+  to,
+}: {
+  source: ImageSource;
+  width: number;
+  height: number;
+  from: { x: number; bottom: number };
+  to: { x: number; bottom: number };
+}) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.set(withTiming(1, { duration: GIFT_FLIGHT_MS, easing: Easing.inOut(Easing.quad) }));
+  }, [t]);
+  const style = useAnimatedStyle(() => {
+    const p = t.get();
+    const lift = Math.sin(Math.PI * p) * 170;
+    return {
+      opacity: p < 0.08 ? p / 0.08 : 1,
+      transform: [
+        { translateX: (from.x - to.x) * (1 - p) },
+        { translateY: -((from.bottom - to.bottom) * (1 - p) + lift) },
+        { rotate: `${Math.sin(p * Math.PI * 2) * 12}deg` },
+        { scale: 0.35 + 0.65 * p },
+      ],
+    };
+  });
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[styles.plant, { left: to.x - width / 2, bottom: to.bottom }, style]}>
+      <Image source={source} style={{ width, height }} contentFit="contain" />
+    </Animated.View>
   );
 }
 

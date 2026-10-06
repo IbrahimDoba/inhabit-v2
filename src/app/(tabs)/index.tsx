@@ -1,20 +1,38 @@
 import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EnergyBar } from '@/components/energy-bar';
 import { Confetti } from '@/components/home/confetti';
 import { DiamondPill } from '@/components/home/diamond-pill';
+import { DepartureMoment } from '@/components/home/departure-moment';
 import { DragonStage } from '@/components/home/dragon-stage';
-import { FullBarMoment } from '@/components/home/full-bar-moment';
+import {
+  BOLT_FLIGHT_MS,
+  EnergyBolts,
+  flightMs,
+  FLY_MS,
+  type BoltFlight,
+  type Point,
+} from '@/components/home/energy-bolts';
 import { HabitRow } from '@/components/home/habit-row';
 import { HomecomingMoment } from '@/components/home/homecoming-moment';
 import { JourneyCard } from '@/components/home/journey-card';
+import { MaxMoment } from '@/components/home/max-moment';
 import { Toast, useToasts } from '@/components/home/toast';
 import { PrimaryButton } from '@/components/primary-button';
 import { GardenScene, type DragonMotion, type GardenPlant } from '@/components/scene/garden-scene';
+import { ScrollDepth } from '@/components/scene/scroll-depth';
 import { TrailScene } from '@/components/scene/trail-scene';
 import { ThemedText } from '@/components/themed-text';
 import { PLANT_SPRITES } from '@/constants/plant-sprites';
@@ -31,7 +49,6 @@ import {
   ENERGY_PER_HABIT,
   EXTRA_HABIT_DIAMONDS,
   FIRST_JOURNEY_BONUS,
-  STAGE_RULES,
   type PropId,
 } from '@/engine/rules';
 import { GIFT_NAMES, JOURNEY_STORIES, PROP_NAMES, tellStory } from '@/engine/stories';
@@ -50,7 +67,6 @@ import { mixHex } from '@/lib/sky';
 const CHEERS = ['Nicely done!', 'You did it!', 'Hooray!', 'Lovely!', 'Way to go!'];
 /** On phones the native tab bar floats over the bottom of the screen; keep toasts above it. */
 const TAB_BAR_CLEARANCE = Platform.OS === 'web' ? 0 : 64;
-
 
 function greeting(hour: number) {
   if (hour < 12) return 'Good morning';
@@ -89,6 +105,29 @@ function HomeContent() {
   const [hopKey, setHopKey] = useState(0);
   const [burstKey, setBurstKey] = useState(0);
   const [storyOpen, setStoryOpen] = useState(false);
+  const [departing, setDeparting] = useState(false);
+  const rootRef = useRef<View>(null);
+  const barRef = useRef<View>(null);
+  const [flights, setFlights] = useState<BoltFlight[]>([]);
+  const nextFlight = useRef(1);
+  // While bolts are in the air the bar keeps showing the energy from before, then fills as they land.
+  const [heldEnergy, setHeldEnergy] = useState<number | null>(null);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The full bar's diamonds wait to show in the counter until they fly into it.
+  const [heldDiamonds, setHeldDiamonds] = useState<number | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const pillRef = useRef<View>(null);
+  const celebrating = !!companion.celebration;
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.set(event.contentOffset.y);
+  });
+  useEffect(
+    () => () => {
+      if (holdTimer.current) clearTimeout(holdTimer.current);
+    },
+    [],
+  );
   const [newGift, setNewGift] = useState<PropId | null>(null);
   const [visit, setVisit] = useState<{ key: string; nonce: number } | null>(null);
 
@@ -105,6 +144,11 @@ function HomeContent() {
   useEffect(() => {
     if (!habits) seed(habitIds);
   }, [habits, seed, habitIds]);
+
+  // The full-bar moment plays under the garden, so bring the garden into view.
+  useEffect(() => {
+    if (celebrating) scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [celebrating]);
 
   // Bring the dragon home the moment its countdown ends.
   useEffect(() => {
@@ -129,7 +173,9 @@ function HomeContent() {
   const reward = state.fullCareToday ? `+${EXTRA_HABIT_DIAMONDS} 💎` : `+${ENERGY_PER_HABIT} ⚡`;
   const trip = state.homecoming;
   // Taller than wide, like Finch: open sky under the greeting, meadow below.
-  const sceneHeight = Math.round(Math.min(Math.max(window.width * 1.22, 380), window.height * 0.62));
+  const sceneHeight = Math.round(
+    Math.min(Math.max(window.width * 1.22, 380), window.height * 0.62),
+  );
   const headerSpace = insets.top + TabBarTopInset + 64;
   const panel = mixHex(PANEL_DAY, PANEL_NIGHT, sky.night);
   // Text drawn straight on the sky turns light once it gets dark.
@@ -138,6 +184,7 @@ function HomeContent() {
     <DragonStage
       pose={motion?.pose}
       flip={motion?.flip}
+      onGreet={companion.greet}
       name={dragonName}
       mood={mood(state, now)}
       away={away}
@@ -163,9 +210,16 @@ function HomeContent() {
           subtitle: `+${event.gained} energy for ${dragonName}`,
         });
       }
+      if (event.type === 'diamonds' && event.reason === 'fullBar') {
+        const before = state.diamonds;
+        setHeldDiamonds((held) => held ?? before);
+      }
       if (event.type === 'diamonds' && event.reason === 'extraHabit') {
         setHopKey((k) => k + 1);
-        toasts.show({ title: 'Bonus diamond!', subtitle: 'Extra habits still count.' });
+        toasts.show({
+          title: 'Bonus diamond!',
+          subtitle: 'Extra habits still count.',
+        });
       }
     }
   };
@@ -189,10 +243,77 @@ function HomeContent() {
     const after = plantOf(id, [...(log[id] ?? []), state.today]);
     const title = all.find((h) => h.id === id)?.title ?? 'Your';
     if (after.growth !== before.growth) {
-      toasts.show({ title: `Your "${title}" plant is ${STAGE_LABELS[after.growth]}!`, subtitle: 'It grows every time you do it.', expression: 'proud' });
+      toasts.show({
+        title: `Your "${title}" plant is ${STAGE_LABELS[after.growth]}!`,
+        subtitle: 'It grows every time you do it.',
+        expression: 'proud',
+      });
     } else if (before.resting) {
-      toasts.show({ title: `Your "${title}" plant woke up!`, subtitle: 'It missed you. Welcome back.' });
+      toasts.show({
+        title: `Your "${title}" plant woke up!`,
+        subtitle: 'It missed you. Welcome back.',
+      });
     }
+  };
+
+  // Energy flies from the tick into the bar (only while the bar is on screen to receive it).
+  const sendBolts = (from: Point) => {
+    if (state.journey || trip || state.fullCareToday) return;
+    const energy = state.energy;
+    setHeldEnergy((held) => held ?? energy);
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+    holdTimer.current = setTimeout(() => setHeldEnergy(null), BOLT_FLIGHT_MS);
+    const root = rootRef.current;
+    const target = barRef.current;
+    if (!root || !target) return;
+    root.measureInWindow((rootX, rootY) => {
+      target.measureInWindow((x, y, w, h) => {
+        // Aim at where the fill will reach once this habit's energy lands.
+        const reach = Math.min((energy + ENERGY_PER_HABIT) / bar, 1);
+        const id = nextFlight.current++;
+        const flight: BoltFlight = {
+          id,
+          from: { x: from.x - rootX, y: from.y - rootY },
+          to: { x: x - rootX + 32 + (w - 84) * reach, y: y - rootY + h / 2 },
+        };
+        setFlights((all) => [...all, flight]);
+        setTimeout(() => setFlights((all) => all.filter((f) => f.id !== id)), BOLT_FLIGHT_MS + 100);
+      });
+    });
+  };
+
+  // The full bar's diamonds fly from the reward chip into the counter, which counts up as they land.
+  const flyDiamonds = (from: Point) => {
+    const root = rootRef.current;
+    const pill = pillRef.current;
+    if (!root || !pill) {
+      setHeldDiamonds(null);
+      return;
+    }
+    root.measureInWindow((rootX, rootY) => {
+      pill.measureInWindow((x, y, w, h) => {
+        const id = nextFlight.current++;
+        const count = 8;
+        const flight: BoltFlight = {
+          id,
+          icon: '💎',
+          count,
+          from: { x: from.x - rootX, y: from.y - rootY },
+          to: { x: x - rootX + 22, y: y - rootY + h / 2 },
+        };
+        setFlights((all) => [...all, flight]);
+        setTimeout(() => setHeldDiamonds(null), FLY_MS);
+        setTimeout(
+          () => setFlights((all) => all.filter((f) => f.id !== id)),
+          flightMs(count) + 100,
+        );
+      });
+    });
+  };
+
+  const closeCelebration = () => {
+    setHeldDiamonds(null);
+    companion.dismissCelebration();
   };
 
   const gardenPlants: GardenPlant[] = all.map((habit) => {
@@ -206,14 +327,12 @@ function HomeContent() {
   });
 
   const explore = () => {
-    companion.dismissCelebration();
+    // Coming from the full-bar moment, let it fade out before the send-off fades in.
+    const fromCelebration = celebrating;
+    closeCelebration();
     const events = companion.startJourney();
     if (events.some((e) => e.type === 'journeyStarted')) {
-      toasts.show({
-        title: `${dragonName} set off exploring!`,
-        subtitle: `Back in ${STAGE_RULES[state.stage].journeyHours} hours with a surprise.`,
-        expression: 'proud',
-      });
+      setTimeout(() => setDeparting(true), fromCelebration ? 300 : 0);
     }
   };
 
@@ -223,8 +342,10 @@ function HomeContent() {
     const placed = events.find((e) => e.type === 'giftPlaced');
     if (placed?.type === 'giftPlaced') {
       const name = GIFT_NAMES[placed.spot.prop];
-      setNewGift(placed.spot.prop);
-      setTimeout(() => setNewGift(null), 2500);
+      const prop = placed.spot.prop;
+      // Let the story screen fade first, so the gift's flight from the bundle is seen.
+      setTimeout(() => setNewGift(prop), 400);
+      setTimeout(() => setNewGift(null), 3200);
       toasts.show(
         placed.upgraded
           ? {
@@ -242,32 +363,40 @@ function HomeContent() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: panel }]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <View ref={rootRef} style={[styles.root, { backgroundColor: panel }]}>
+      <Animated.ScrollView
+        ref={scrollRef}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.scroll}
+        scrollEnabled={!celebrating}>
         <View style={{ height: sceneHeight }}>
-          {away ? (
-            <TrailScene
-              sky={sky}
-              width={window.width}
-              height={sceneHeight}
-              fadeTo={panel}
-              topInset={headerSpace}>
-              {stage()}
-            </TrailScene>
-          ) : (
-            <GardenScene
-              sky={sky}
-              width={window.width}
-              height={sceneHeight}
-              fadeTo={panel}
-              topInset={headerSpace}
-              plants={gardenPlants}
-              gifts={state.garden}
-              newGift={newGift}
-              visit={visit}>
-              {(motion) => stage(motion)}
-            </GardenScene>
-          )}
+          <ScrollDepth scrollY={scrollY} height={sceneHeight} fadeTo={panel}>
+            {away ? (
+              <TrailScene
+                sky={sky}
+                width={window.width}
+                height={sceneHeight}
+                fadeTo={panel}
+                topInset={headerSpace}>
+                {stage()}
+              </TrailScene>
+            ) : (
+              <GardenScene
+                sky={sky}
+                width={window.width}
+                height={sceneHeight}
+                fadeTo={panel}
+                topInset={headerSpace}
+                plants={gardenPlants}
+                gifts={state.garden}
+                newGift={newGift}
+                arriving={!!trip}
+                visit={visit}>
+                {(motion) => stage(motion)}
+              </GardenScene>
+            )}
+          </ScrollDepth>
           <View style={styles.confetti} pointerEvents="none">
             <Confetti burstKey={burstKey} />
           </View>
@@ -288,7 +417,19 @@ function HomeContent() {
                 Day {daysBetween(state.hatchedOn, dayKey(now)) + 1} with {dragonName}
               </ThemedText>
             </View>
-            <DiamondPill diamonds={state.diamonds} />
+            <View style={styles.headerRight}>
+              <View ref={pillRef}>
+                <DiamondPill diamonds={heldDiamonds ?? state.diamonds} />
+              </View>
+              <Pressable
+                onPress={() => router.push('/settings')}
+                accessibilityRole="button"
+                accessibilityLabel="Settings"
+                hitSlop={8}
+                style={[styles.gear, { backgroundColor: theme.artCard }]}>
+                <ThemedText style={styles.gearIcon}>⚙️</ThemedText>
+              </Pressable>
+            </View>
           </View>
         </View>
 
@@ -318,7 +459,9 @@ function HomeContent() {
               </>
             ) : (
               <>
-                <EnergyBar value={state.energy} max={bar} />
+                <View ref={barRef}>
+                  <EnergyBar value={heldEnergy ?? state.energy} max={bar} />
+                </View>
                 {canStartJourney(state) ? (
                   <PrimaryButton label={`Send ${dragonName} exploring`} onPress={explore} />
                 ) : (
@@ -370,6 +513,7 @@ function HomeContent() {
                     done={false}
                     reward={reward}
                     onToggle={() => toggle(habit.id, false)}
+                    onTickStart={sendBolts}
                     onEdit={() => editHabit(habit.id)}
                   />
                 ))}
@@ -377,18 +521,20 @@ function HomeContent() {
             );
           })}
 
-          <Pressable
-            onPress={() => addHabit()}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.addHabit,
-              { borderColor: theme.primary, backgroundColor: theme.artCard },
-              pressed && styles.pressed,
-            ]}>
-            <ThemedText type="smallBold" themeColor="primary">
-              + Add a habit
-            </ThemedText>
-          </Pressable>
+          <View>
+            <Pressable
+              onPress={() => addHabit()}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.addHabit,
+                { borderColor: theme.primary, backgroundColor: theme.artCard },
+                pressed && styles.pressed,
+              ]}>
+              <ThemedText type="smallBold" themeColor="primary">
+                + Add a habit
+              </ThemedText>
+            </Pressable>
+          </View>
 
           {done.length > 0 ? (
             <View style={styles.section}>
@@ -409,24 +555,43 @@ function HomeContent() {
             </View>
           ) : null}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
-        <View
-          style={[styles.toastLayer, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}
-          pointerEvents="none">
-          <Toast message={toasts.current} />
-        </View>
+      <View
+        style={[styles.toastLayer, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+        pointerEvents="none">
+        <Toast message={toasts.current} />
+      </View>
 
-      <FullBarMoment
-        visible={!!companion.celebration}
-        name={dragonName}
-        stage={state.stage}
-        stageDays={state.stageDays}
-        grewUp={companion.celebration?.grewUp ?? null}
-        canExplore={canStartJourney(state)}
-        onExplore={explore}
-        onClose={companion.dismissCelebration}
-      />
+      {companion.celebration ? (
+        <MaxMoment
+          name={dragonName}
+          stage={state.stage}
+          stageDays={state.stageDays}
+          grewUp={companion.celebration.grewUp}
+          diamonds={companion.celebration.diamonds}
+          canExplore={canStartJourney(state)}
+          top={sceneHeight - 30}
+          bottomInset={insets.bottom + TAB_BAR_CLEARANCE}
+          panel={panel}
+          onShown={() => setHopKey((k) => k + 1)}
+          onReward={flyDiamonds}
+          onExplore={explore}
+          onClose={closeCelebration}
+        />
+      ) : null}
+
+      {state.journey ? (
+        <DepartureMoment
+          visible={departing}
+          name={dragonName}
+          sky={sky}
+          panel={panel}
+          startedAt={state.journey.startedAt}
+          returnsAt={state.journey.returnsAt}
+          onClose={() => setDeparting(false)}
+        />
+      ) : null}
 
       {trip ? (
         <HomecomingMoment
@@ -439,6 +604,8 @@ function HomeContent() {
           onCollect={collect}
         />
       ) : null}
+
+      <EnergyBolts flights={flights} />
     </View>
   );
 }
@@ -474,6 +641,22 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 60,
     height: 220,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  gear: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gearIcon: {
+    fontSize: 18,
+    lineHeight: 22,
   },
   hello: {
     flex: 1,

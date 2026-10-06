@@ -13,7 +13,13 @@ import {
   undoHabit,
   type CompanionState,
 } from '../companion';
-import { FIRST_JOURNEY_BONUS, GARDEN_PROPS, MAX_PROP_LEVEL, STAGE_RULES } from '../rules';
+import {
+  FIRST_JOURNEY_BONUS,
+  FULL_BAR_DIAMONDS,
+  GARDEN_PROPS,
+  MAX_PROP_LEVEL,
+  STAGE_RULES,
+} from '../rules';
 import { HOUR } from '../time';
 
 // Tests run with TZ=UTC (see the `test` script), so these are exact local times.
@@ -54,6 +60,18 @@ describe('energy', () => {
     expect(events.filter((e) => e.type === 'barFull')).toHaveLength(1);
   });
 
+  it('pays diamonds once for filling the bar, and undo does not take them back', () => {
+    const { state, events } = doHabits(createCompanion(at(1)), at(1), 3);
+    expect(state.diamonds).toBe(FULL_BAR_DIAMONDS);
+    expect(events).toContainEqual({
+      type: 'diamonds',
+      gained: FULL_BAR_DIAMONDS,
+      reason: 'fullBar',
+    });
+    const undone = undoHabit(state, 'h0', at(1, 12)).state;
+    expect(undone.diamonds).toBe(FULL_BAR_DIAMONDS);
+  });
+
   it('counts the same habit once per day', () => {
     let s = completeHabit(createCompanion(at(1)), 'water', at(1)).state;
     s = completeHabit(s, 'water', at(1, 11)).state;
@@ -64,7 +82,7 @@ describe('energy', () => {
     const full = doHabits(createCompanion(at(1)), at(1), 3).state;
     const { state, events } = completeHabit(full, 'extra', at(1, 12));
     expect(state.energy).toBe(15);
-    expect(state.diamonds).toBe(1);
+    expect(state.diamonds).toBe(FULL_BAR_DIAMONDS + 1);
     expect(state.totalFullCareDays).toBe(1);
     expect(events).toEqual([{ type: 'diamonds', gained: 1, reason: 'extraHabit' }]);
   });
@@ -178,10 +196,16 @@ describe('journeys', () => {
 
     const collected = collectHomecoming(s, at(1, 18));
     s = collected.state;
-    expect(s.diamonds).toBe(STAGE_RULES.baby.journeyDiamonds + FIRST_JOURNEY_BONUS);
+    expect(s.diamonds).toBe(
+      FULL_BAR_DIAMONDS + STAGE_RULES.baby.journeyDiamonds + FIRST_JOURNEY_BONUS,
+    );
     expect(s.garden).toEqual([{ prop: GARDEN_PROPS[0], level: 1 }]);
     expect(s.journeysCompleted).toBe(1);
-    expect(collected.events).toContainEqual({ type: 'diamonds', gained: 100, reason: 'welcomeBonus' });
+    expect(collected.events).toContainEqual({
+      type: 'diamonds',
+      gained: 100,
+      reason: 'welcomeBonus',
+    });
   });
 
   it('only leaves once a day', () => {
@@ -198,7 +222,9 @@ describe('journeys', () => {
       s = startJourney(s, at(day), rng).state;
       s = collectHomecoming(refresh(s, at(day, 20)).state, at(day, 20)).state;
     }
-    expect(s.diamonds).toBe(2 * STAGE_RULES.baby.journeyDiamonds + FIRST_JOURNEY_BONUS);
+    expect(s.diamonds).toBe(
+      2 * (FULL_BAR_DIAMONDS + STAGE_RULES.baby.journeyDiamonds) + FIRST_JOURNEY_BONUS,
+    );
   });
 
   it('waits for a journey that runs past midnight before the next one', () => {
