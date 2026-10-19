@@ -182,6 +182,7 @@ function HomeContent() {
   const nightText = sky.night > 0.5;
   const stage = (motion?: DragonMotion) => (
     <DragonStage
+      stage={state.stage}
       pose={motion?.pose}
       flip={motion?.flip}
       onGreet={companion.greet}
@@ -584,6 +585,7 @@ function HomeContent() {
       {state.journey ? (
         <DepartureMoment
           visible={departing}
+          stage={state.stage}
           name={dragonName}
           sky={sky}
           panel={panel}
@@ -596,6 +598,7 @@ function HomeContent() {
       {trip ? (
         <HomecomingMoment
           visible={storyOpen}
+          stage={state.stage}
           name={dragonName}
           story={tellStory(JOURNEY_STORIES[trip.storyIndex], dragonName, trip.gift)}
           diamonds={trip.diamonds}

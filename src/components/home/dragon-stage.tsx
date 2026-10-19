@@ -15,15 +15,20 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { DragonPoses, type DragonPose } from '@/components/dragon-sprite';
+import { DragonPoses, lookForStage, type DragonPose } from '@/components/dragon-sprite';
 import { GroundShadow } from '@/components/ground-shadow';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Radii, Spacing } from '@/constants/theme';
 import type { Mood } from '@/engine/companion';
+import type { Stage } from '@/engine/rules';
 import { useTheme } from '@/hooks/use-theme';
 
 const LINES: Record<Mood, readonly string[]> = {
-  content: ['Hi! What shall we do today?', 'I saved you a spot in the garden.', 'Ready when you are!'],
+  content: [
+    'Hi! What shall we do today?',
+    'I saved you a spot in the garden.',
+    'Ready when you are!',
+  ],
   happy: ['That felt good!', 'We make a great team.', 'More energy, more fun!'],
   proud: ['I’m bursting with energy!', 'Look how full I am!', 'Best day ever.'],
   sleepy: ['Zzz… oh, hi.', '*yawns* Still here.', 'Five more minutes…'],
@@ -36,17 +41,25 @@ const HEART_LIFE_MS = 1300;
 const HEARTS = ['💜', '💕', '💗'];
 /** Woken at night, it stays up this long after the last tap, then curls up again. */
 const AWAKE_MS = 25_000;
-const WOKEN = ['*yawns* Oh, hi…', 'Mm? Is it morning?', '*stretches* Still here.', 'Five more minutes…'];
+const WOKEN = [
+  '*yawns* Oh, hi…',
+  'Mm? Is it morning?',
+  '*stretches* Still here.',
+  'Five more minutes…',
+];
 
 const MOOD_MARK: Partial<Record<Mood, string>> = { sleepy: '💤', proud: '✨' };
 
-const SPRITE_HEIGHT = 215;
+/** Standing height in the garden; older dragons stand taller. */
+const SPRITE_HEIGHT = { baby: 215, young: 250 } as const;
 // The bundle walk is here too, for walking back into the garden after exploring.
 const HOME_POSES: readonly DragonPose[] = ['idle', 'sleep', 'stroll', 'water', 'walk'];
 const AWAY_POSES: readonly DragonPose[] = ['walk'];
 
 type DragonStageProps = {
   name: string;
+  /** Growth stage: picks the art and size. */
+  stage: Stage;
   mood: Mood;
   away: boolean;
   /** Bump to make the dragon hop, e.g. after a habit. */
@@ -65,6 +78,7 @@ type DragonStageProps = {
  */
 export function DragonStage({
   name,
+  stage,
   mood,
   away,
   hopKey,
@@ -77,6 +91,7 @@ export function DragonStage({
   const awakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // At night the dragon sleeps curled up in the garden until you tap it.
   const sleeping = mood === 'sleepy' && !away && !awake;
+  const look = lookForStage(stage);
   const pose: DragonPose = poseOverride ?? (away ? 'walk' : sleeping ? 'sleep' : 'idle');
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
@@ -97,10 +112,13 @@ export function DragonStage({
     );
   }, [hopKey, hop, reduceMotion]);
 
-  useEffect(() => () => {
-    if (lineTimer.current) clearTimeout(lineTimer.current);
-    if (awakeTimer.current) clearTimeout(awakeTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (lineTimer.current) clearTimeout(lineTimer.current);
+      if (awakeTimer.current) clearTimeout(awakeTimer.current);
+    },
+    [],
+  );
 
   const hopStyle = useAnimatedStyle(() => ({
     transform: [
@@ -248,7 +266,8 @@ export function DragonStage({
             pose={pose}
             poses={away ? AWAY_POSES : HOME_POSES}
             flip={flip}
-            height={SPRITE_HEIGHT}
+            look={look}
+            height={SPRITE_HEIGHT[look]}
           />
         </Animated.View>
         <GroundShadow width={110} />

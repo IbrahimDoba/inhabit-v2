@@ -163,6 +163,13 @@ export default function SettingsScreen() {
         ) : (
           <ThemedText themeColor="textSecondary">More settings are coming soon.</ThemedText>
         )}
+
+        <ThemedText type="smallBold" themeColor="textSecondary" style={styles.aboutHeading}>
+          ABOUT
+        </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          Emoji graphics by Twemoji (Twitter, Inc. and contributors), licensed under CC-BY 4.0.
+        </ThemedText>
       </ScrollView>
     </SafeAreaView>
   );
@@ -210,5 +217,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     transform: [{ scale: 0.98 }],
+  },
+  aboutHeading: {
+    marginTop: Spacing.three,
   },
 });

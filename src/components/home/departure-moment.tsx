@@ -4,12 +4,13 @@ import { Modal, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DragonSprite } from '@/components/dragon-sprite';
+import { DragonSprite, lookForStage } from '@/components/dragon-sprite';
 import { JourneyCard } from '@/components/home/journey-card';
 import { PrimaryButton } from '@/components/primary-button';
 import { TrailScene } from '@/components/scene/trail-scene';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
+import type { Stage } from '@/engine/rules';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import type { SkyState } from '@/lib/sky';
@@ -17,6 +18,7 @@ import type { SkyState } from '@/lib/sky';
 type DepartureMomentProps = {
   visible: boolean;
   name: string;
+  stage: Stage;
   sky: SkyState;
   /** Colour under the scene, matching Home's panel. */
   panel: string;
@@ -39,6 +41,7 @@ export function DepartureMoment({ visible, onClose, ...rest }: DepartureMomentPr
 
 function Content({
   name,
+  stage,
   sky,
   panel,
   startedAt,
@@ -64,7 +67,11 @@ function Content({
         height={sceneHeight}
         fadeTo={panel}
         topInset={insets.top}>
-        <DragonSprite pose="walk" height={200} />
+        <DragonSprite
+          pose="walk"
+          look={lookForStage(stage)}
+          height={stage === 'baby' ? 200 : 230}
+        />
       </TrailScene>
 
       <View style={[styles.body, { paddingBottom: insets.bottom + Spacing.four }]}>

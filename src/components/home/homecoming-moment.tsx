@@ -13,16 +13,19 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DragonSprite } from '@/components/dragon-sprite';
+import { DragonSprite, lookForStage } from '@/components/dragon-sprite';
 import { PrimaryButton } from '@/components/primary-button';
 import { SunRays } from '@/components/sun-rays';
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
+import type { Stage } from '@/engine/rules';
 import { useTheme } from '@/hooks/use-theme';
 
 type HomecomingMomentProps = {
   visible: boolean;
   name: string;
+  stage: Stage;
   story: string;
   diamonds: number;
   welcomeBonus: number;
@@ -43,7 +46,15 @@ export function HomecomingMoment(props: HomecomingMomentProps) {
   );
 }
 
-function Content({ name, story, diamonds, welcomeBonus, giftName, onCollect }: HomecomingMomentProps) {
+function Content({
+  name,
+  stage,
+  story,
+  diamonds,
+  welcomeBonus,
+  giftName,
+  onCollect,
+}: HomecomingMomentProps) {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
   const walk = useSharedValue(reduceMotion ? 0 : 1);
@@ -86,7 +97,11 @@ function Content({ name, story, diamonds, welcomeBonus, giftName, onCollect }: H
               <SunRays />
             </Animated.View>
             <Animated.View style={dragonStyle}>
-              <DragonSprite pose={arrived ? 'idle' : 'walk'} height={175} />
+              <DragonSprite
+                pose={arrived ? 'idle' : 'walk'}
+                look={lookForStage(stage)}
+                height={stage === 'baby' ? 175 : 200}
+              />
             </Animated.View>
           </View>
 
@@ -104,7 +119,10 @@ function Content({ name, story, diamonds, welcomeBonus, giftName, onCollect }: H
           <Animated.View entering={FadeIn.delay(1600).duration(400)} style={styles.rewards}>
             <Reward emoji="💎" label={`+${tripDiamonds} diamonds`} />
             {welcomeBonus > 0 ? (
-              <Reward emoji="🎁" label={`+${welcomeBonus} welcome bonus for your first adventure`} />
+              <Reward
+                emoji="🎁"
+                label={`+${welcomeBonus} welcome bonus for your first adventure`}
+              />
             ) : null}
             <Reward emoji="🌱" label={`${capitalise(giftName)} for your garden`} />
           </Animated.View>
@@ -122,7 +140,7 @@ function Reward({ emoji, label }: { emoji: string; label: string }) {
   const theme = useTheme();
   return (
     <View style={[styles.reward, { backgroundColor: theme.momentCard }]}>
-      <ThemedText style={styles.rewardEmoji}>{emoji}</ThemedText>
+      <IconPebble emoji={emoji} size={40} />
       <ThemedText type="smallBold" style={[styles.rewardLabel, { color: theme.onMoment }]}>
         {label}
       </ThemedText>
@@ -193,10 +211,6 @@ const styles = StyleSheet.create({
     borderRadius: Radii.md,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-  },
-  rewardEmoji: {
-    fontSize: 20,
-    lineHeight: 26,
   },
   rewardLabel: {
     flex: 1,

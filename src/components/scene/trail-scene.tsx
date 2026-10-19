@@ -13,7 +13,7 @@ import Animated, {
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { SkyBackdrop } from '@/components/scene/sky-backdrop';
-import { ThemedText } from '@/components/themed-text';
+import { Icon } from '@/components/icon';
 import { NIGHT_SHADE, WARM_LIGHT } from '@/constants/sky';
 import type { SkyState } from '@/lib/sky';
 
@@ -178,19 +178,13 @@ function Foreground({ viewWidth, dim }: { viewWidth: number; dim: number }) {
       pointerEvents="none">
       {[0, 1].flatMap((copy) =>
         FRONT_PLANTS.map((p, i) => (
-          <ThemedText
+          <Icon
             key={`${copy}-${i}`}
-            style={[
-              styles.frontPlant,
-              {
-                left: (copy + p.x) * loop,
-                bottom: -p.drop,
-                fontSize: p.size,
-                lineHeight: p.size * 1.2,
-              },
-            ]}>
-            {p.emoji}
-          </ThemedText>
+            emoji={p.emoji}
+            plain
+            size={p.size * 1.25}
+            style={[styles.frontPlant, { left: (copy + p.x) * loop, bottom: -p.drop }]}
+          />
         )),
       )}
     </Animated.View>

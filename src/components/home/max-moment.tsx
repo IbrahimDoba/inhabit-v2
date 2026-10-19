@@ -19,6 +19,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Confetti } from '@/components/home/confetti';
 import type { Point } from '@/components/home/energy-bolts';
 import { PrimaryButton } from '@/components/primary-button';
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
 import { STAGE_RULES, type Stage } from '@/engine/rules';
@@ -120,7 +121,7 @@ export function MaxMoment({
               {diamonds > 0 ? (
                 <Animated.View entering={FadeInDown.delay(750).duration(400)}>
                   <View ref={chipRef} style={[styles.chip, { backgroundColor: theme.artCard }]}>
-                    <ThemedText style={styles.chipGem}>💎</ThemedText>
+                    <IconPebble emoji="💎" size={40} />
                     <View>
                       <ThemedText type="small" themeColor="inkSecondary">
                         {name} got
@@ -232,7 +233,7 @@ function Growth({
   if (grewUp) {
     return (
       <>
-        <ThemedText style={styles.cardEmoji}>🎉</ThemedText>
+        <IconPebble emoji="🎉" size={60} />
         <ThemedText type="subtitle" themeColor="ink" style={styles.center}>
           {name} grew into a {STAGE_RULES[grewUp.to].label.toLowerCase()} dragon!
         </ThemedText>
@@ -351,10 +352,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
   },
-  chipGem: {
-    fontSize: 24,
-    lineHeight: 30,
-  },
   spacer: {
     flex: 1,
   },
@@ -366,10 +363,6 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
     alignItems: 'center',
-  },
-  cardEmoji: {
-    fontSize: 32,
-    lineHeight: 40,
   },
   growTrack: {
     alignSelf: 'stretch',

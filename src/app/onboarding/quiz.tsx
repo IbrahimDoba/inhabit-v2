@@ -17,6 +17,7 @@ import { GardenBackdrop } from '@/components/garden-backdrop';
 import { PrimaryButton } from '@/components/primary-button';
 import { QuizProgress } from '@/components/quiz-progress';
 import { SpeechBubble } from '@/components/speech-bubble';
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThinkingMark } from '@/components/thinking-mark';
 import {
@@ -229,7 +230,7 @@ function OptionRow({ option, kind, selected, onPress }: OptionRowProps) {
         },
         pressed && styles.pressed,
       ]}>
-      <ThemedText style={styles.emoji}>{option.emoji}</ThemedText>
+      <IconPebble emoji={option.emoji} size={40} />
       <ThemedText type="smallBold" themeColor="ink" style={styles.optionLabel}>
         {option.label}
       </ThemedText>
@@ -298,10 +299,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     paddingHorizontal: Spacing.three,
     minHeight: 52,
-  },
-  emoji: {
-    fontSize: 22,
-    lineHeight: 28,
   },
   optionLabel: {
     flex: 1,

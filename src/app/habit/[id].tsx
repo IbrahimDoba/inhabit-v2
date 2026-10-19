@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Chip } from '@/components/chip';
+import { IconPebble } from '@/components/icon';
 import { PlantPicker } from '@/components/plant-picker';
 import { PrimaryButton } from '@/components/primary-button';
 import { ThemedText } from '@/components/themed-text';
@@ -131,8 +132,8 @@ export default function HabitEditorScreen() {
               onPress={() => setShowEmoji((v) => !v)}
               accessibilityRole="button"
               accessibilityLabel={`Icon ${draft.emoji}. Tap to change`}
-              style={[styles.emojiButton, { backgroundColor: theme.primarySoft }]}>
-              <ThemedText style={styles.emojiBig}>{draft.emoji}</ThemedText>
+              hitSlop={4}>
+              <IconPebble emoji={draft.emoji} size={60} selected />
             </Pressable>
             <TextInput
               value={draft.title}
@@ -159,14 +160,8 @@ export default function HabitEditorScreen() {
                   accessibilityRole="radio"
                   accessibilityState={{ selected: emoji === draft.emoji }}
                   accessibilityLabel={emoji}
-                  style={[
-                    styles.emojiCell,
-                    {
-                      backgroundColor: emoji === draft.emoji ? theme.primarySoft : theme.surface,
-                      borderColor: emoji === draft.emoji ? theme.primary : theme.border,
-                    },
-                  ]}>
-                  <ThemedText style={styles.emojiSmall}>{emoji}</ThemedText>
+                  style={({ pressed }) => pressed && styles.pressed}>
+                  <IconPebble emoji={emoji} size={46} selected={emoji === draft.emoji} />
                 </Pressable>
               ))}
             </View>
@@ -194,7 +189,7 @@ export default function HabitEditorScreen() {
                       i > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth },
                       pressed && { backgroundColor: theme.surfaceMuted },
                     ]}>
-                    <ThemedText style={styles.emojiSmall}>{item.emoji}</ThemedText>
+                    <IconPebble emoji={item.emoji} size={40} />
                     <ThemedText style={styles.flex}>{item.title}</ThemedText>
                     <ThemedText themeColor="primary">+</ThemedText>
                   </Pressable>
@@ -333,17 +328,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: Spacing.three,
   },
-  emojiButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emojiBig: {
-    fontSize: 30,
-    lineHeight: 38,
-  },
   titleInput: {
     flex: 1,
     fontFamily: Fonts.heading,
@@ -356,17 +340,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.two,
   },
-  emojiCell: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emojiSmall: {
-    fontSize: 22,
-    lineHeight: 28,
+  pressed: {
+    transform: [{ scale: 0.94 }],
   },
   section: {
     gap: Spacing.two,

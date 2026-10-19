@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DragonPortrait } from '@/components/dragon-portrait';
 import { GardenBackdrop } from '@/components/garden-backdrop';
 import { PrimaryButton } from '@/components/primary-button';
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Traits } from '@/constants/dragon';
 import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
@@ -55,7 +56,7 @@ export default function TraitScreen() {
                     },
                     pressed && styles.pressed,
                   ]}>
-                  <ThemedText style={styles.emoji}>{trait.emoji}</ThemedText>
+                  <IconPebble emoji={trait.emoji} size={44} />
                   <View style={styles.optionText}>
                     <ThemedText type="smallBold" themeColor="ink">
                       {trait.label}
@@ -124,10 +125,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     minHeight: 56,
-  },
-  emoji: {
-    fontSize: 24,
-    lineHeight: 30,
   },
   optionText: {
     flex: 1,

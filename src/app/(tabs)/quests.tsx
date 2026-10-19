@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 
+import { IconTile } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
@@ -92,6 +93,13 @@ function rank(s: QuestStatus) {
   return 2;
 }
 
+/** A steady tile colour per quest, so each keeps its colour and neighbours tend to differ. */
+function toneFor(id: string) {
+  let hash = 0;
+  for (const c of id) hash = (hash * 31 + c.charCodeAt(0)) | 0;
+  return Math.abs(hash);
+}
+
 function QuestCard({
   status,
   fill,
@@ -115,8 +123,8 @@ function QuestCard({
         },
         claimed && styles.claimedCard,
       ]}>
-      <View style={[styles.icon, { backgroundColor: theme.surfaceMuted }]}>
-        <ThemedText style={styles.emoji}>{quest.emoji}</ThemedText>
+      <View style={claimed && styles.faded}>
+        <IconTile emoji={quest.emoji} size={50} tone={toneFor(quest.id)} />
       </View>
       <View style={styles.text}>
         <ThemedText type="smallBold" style={claimed && styles.struck}>
@@ -203,16 +211,8 @@ const styles = StyleSheet.create({
   claimedCard: {
     opacity: 0.6,
   },
-  icon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 22,
-    lineHeight: 28,
+  faded: {
+    opacity: 0.55,
   },
   text: {
     flex: 1,

@@ -38,6 +38,7 @@ export const Colors = {
     mintDeep: '#2F8F63',
     gold: '#F2C14E',
     plum: '#3B2A4A',
+    pebble: '#EFEDF4',
   },
   dark: {
     background: '#16121F',
@@ -68,8 +69,12 @@ export const Colors = {
     mintDeep: '#6CCB9A',
     gold: '#F2C14E',
     plum: '#D9CFEA',
+    pebble: '#2D2640',
   },
 } as const;
+
+/** Bright tiles behind sticker icons (quests, shop), picked in turn so neighbours differ. */
+export const IconTileColors = ['#9B7BEA', '#F6C24E', '#6DBB63', '#45BDEB', '#F28BA8', '#4FC9B4'] as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 

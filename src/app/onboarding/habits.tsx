@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { OnboardingPage } from '@/components/onboarding-page';
 import { PrimaryButton } from '@/components/primary-button';
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { ENERGY_PER_HABIT, STARTER_HABIT_COUNT } from '@/constants/starter-habits';
 import { Radii, Spacing } from '@/constants/theme';
@@ -56,7 +57,7 @@ export default function HabitsScreen() {
                 isLocked && styles.locked,
                 pressed && styles.pressed,
               ]}>
-              <ThemedText style={styles.emoji}>{habit.emoji}</ThemedText>
+              <IconPebble emoji={habit.emoji} size={46} />
               <ThemedText type="smallBold" themeColor="ink" style={styles.label}>
                 {habit.label}
               </ThemedText>
@@ -92,10 +93,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     padding: Spacing.three,
     gap: Spacing.one,
-  },
-  emoji: {
-    fontSize: 26,
-    lineHeight: 32,
   },
   label: {
     lineHeight: 18,

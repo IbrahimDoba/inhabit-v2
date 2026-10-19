@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import type { Point } from '@/components/home/energy-bolts';
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -95,9 +96,7 @@ export function HabitRow({
         accessibilityRole="button"
         accessibilityLabel={`Edit ${label}`}
         style={styles.body}>
-        <View style={[styles.emojiWrap, { backgroundColor: theme.bubble }]}>
-          <ThemedText style={styles.emoji}>{emoji}</ThemedText>
-        </View>
+        <IconPebble emoji={emoji} size={50} />
         <View style={styles.text}>
           <ThemedText
             themeColor={shownDone ? 'inkSecondary' : 'ink'}
@@ -160,17 +159,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
-  },
-  emojiWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 22,
-    lineHeight: 28,
   },
   text: {
     flex: 1,

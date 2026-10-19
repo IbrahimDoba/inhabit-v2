@@ -13,11 +13,11 @@ import Animated, {
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import type { DragonPose } from '@/components/dragon-sprite';
+import { Icon } from '@/components/icon';
 import { GardenGift } from '@/components/scene/garden-gift';
 import { TendSparkle } from '@/components/scene/tend-sparkle';
 import { HabitPlant } from '@/components/scene/habit-plant';
 import { SkyBackdrop } from '@/components/scene/sky-backdrop';
-import { ThemedText } from '@/components/themed-text';
 import type { PlantSprite } from '@/constants/plant-sprites';
 import { PROP_SPRITES } from '@/constants/prop-sprites';
 import { FIREFLY, WARM_LIGHT } from '@/constants/sky';
@@ -478,7 +478,7 @@ function Butterfly({ width, height, opacity }: { width: number; height: number; 
   });
   return (
     <Animated.View style={[styles.butterfly, { opacity }, style]} pointerEvents="none">
-      <ThemedText style={styles.butterflyText}>🦋</ThemedText>
+      <Icon emoji="🦋" plain size={24} />
     </Animated.View>
   );
 }
@@ -526,9 +526,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: -12,
     top: -12,
-  },
-  butterflyText: {
-    fontSize: 18,
-    lineHeight: 24,
   },
 });

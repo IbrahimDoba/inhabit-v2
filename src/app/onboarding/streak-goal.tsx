@@ -6,6 +6,7 @@ import { DragonPortrait } from '@/components/dragon-portrait';
 import { MomentPage } from '@/components/moment-page';
 import { PrimaryButton } from '@/components/primary-button';
 import { SpeechBubble } from '@/components/speech-bubble';
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import type { Expression } from '@/constants/dragon';
 import { Radii, Spacing } from '@/constants/theme';
@@ -86,9 +87,7 @@ export default function StreakGoalScreen() {
                 },
                 pressed && styles.pressed,
               ]}>
-              <ThemedText style={[styles.emoji, isSelected && styles.emojiSelected]}>
-                {goal.emoji}
-              </ThemedText>
+              <IconPebble emoji={goal.emoji} size={isSelected ? 46 : 40} />
               <ThemedText type="smallBold" style={[styles.days, { color: theme.onMoment }]}>
                 {goal.days} days
               </ThemedText>
@@ -135,14 +134,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     paddingHorizontal: Spacing.three,
     minHeight: 56,
-  },
-  emoji: {
-    fontSize: 22,
-    lineHeight: 28,
-  },
-  emojiSelected: {
-    fontSize: 28,
-    lineHeight: 34,
   },
   days: {
     flex: 1,

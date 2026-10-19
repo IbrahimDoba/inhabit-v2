@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -15,7 +16,7 @@ export function ComingSoon({ emoji, items }: ComingSoonProps) {
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-      <ThemedText style={styles.emoji}>{emoji}</ThemedText>
+      <IconPebble emoji={emoji} size={88} />
       <ThemedText type="smallBold" themeColor="primary">
         Coming soon
       </ThemedText>
@@ -36,10 +37,6 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     alignItems: 'center',
     gap: Spacing.two,
-  },
-  emoji: {
-    fontSize: 48,
-    lineHeight: 56,
   },
   center: {
     textAlign: 'center',

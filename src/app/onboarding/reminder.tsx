@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { OnboardingPage } from '@/components/onboarding-page';
 import { PrimaryButton } from '@/components/primary-button';
+import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Reminders } from '@/constants/starter-habits';
 import { Radii, Spacing } from '@/constants/theme';
@@ -104,7 +105,7 @@ export default function ReminderScreen() {
                 },
                 pressed && styles.pressed,
               ]}>
-              <ThemedText style={styles.emoji}>{option.emoji}</ThemedText>
+              <IconPebble emoji={option.emoji} size={40} />
               <ThemedText type="smallBold" themeColor="ink" style={styles.label}>
                 {option.label}
               </ThemedText>
@@ -162,10 +163,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     paddingHorizontal: Spacing.three,
     minHeight: 52,
-  },
-  emoji: {
-    fontSize: 22,
-    lineHeight: 28,
   },
   label: {
     flex: 1,
