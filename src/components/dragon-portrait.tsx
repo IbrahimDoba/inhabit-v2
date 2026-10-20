@@ -2,7 +2,8 @@ import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 
 import { IdleMotion } from '@/components/idle-motion';
-import { Expressions, type Expression } from '@/constants/dragon';
+import { type Expression } from '@/constants/dragon';
+import { useExpressions } from '@/hooks/use-dragon-look';
 import { useTheme } from '@/hooks/use-theme';
 
 type DragonPortraitProps = {
@@ -14,6 +15,7 @@ type DragonPortraitProps = {
 /** The dragon's head and shoulders in a round frame, which hides the flat cut at the bottom. */
 export function DragonPortrait({ expression, size = 180, accessibilityLabel }: DragonPortraitProps) {
   const theme = useTheme();
+  const faces = useExpressions();
 
   return (
     <View
@@ -23,7 +25,7 @@ export function DragonPortrait({ expression, size = 180, accessibilityLabel }: D
       ]}>
       <IdleMotion kind="breathe" style={styles.fill}>
         <Image
-          source={Expressions[expression]}
+          source={faces[expression]}
           style={[styles.image, { width: size * 0.86, height: size * 0.96 }]}
           contentFit="contain"
           contentPosition="bottom"

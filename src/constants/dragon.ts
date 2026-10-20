@@ -11,6 +11,18 @@ export const Expressions: Record<Expression, ImageSource> = {
   curious: require('@/assets/images/dragon/curious.png'),
 };
 
+/** The same five faces after the first growth: longer snout and neck, so the pictures are taller. */
+export const YoungExpressions: Record<Expression, ImageSource> = {
+  neutral: require('@/assets/images/dragon/young/neutral.png'),
+  happy: require('@/assets/images/dragon/young/happy.png'),
+  sleepy: require('@/assets/images/dragon/young/sleepy.png'),
+  proud: require('@/assets/images/dragon/young/proud.png'),
+  curious: require('@/assets/images/dragon/young/curious.png'),
+};
+
+/** Width / height of the portraits for each look, for cropping a face out of them. */
+export const PORTRAIT_ASPECT = { baby: 551 / 666, young: 560 / 928 } as const;
+
 export type TraitId = 'curious' | 'playful' | 'brave' | 'gentle' | 'dreamy';
 
 export type Trait = {

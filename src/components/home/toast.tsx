@@ -4,13 +4,15 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
-import { Expressions, type Expression } from '@/constants/dragon';
+import { PORTRAIT_ASPECT, type Expression } from '@/constants/dragon';
+import { useDragonLook, useExpressions } from '@/hooks/use-dragon-look';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ToastMessage = { title: string; subtitle?: string; expression?: Expression };
 
 const SHOW_MS = 1900;
+const FACE = 40;
 
 /** A queue of small messages with the dragon's face. One shows at a time. */
 export function useToasts() {
@@ -34,6 +36,8 @@ export function useToasts() {
 
 export function Toast({ message }: { message: (ToastMessage & { id: number }) | null }) {
   const theme = useTheme();
+  const faces = useExpressions();
+  const look = useDragonLook();
   if (!message) return null;
 
   return (
@@ -46,8 +50,9 @@ export function Toast({ message }: { message: (ToastMessage & { id: number }) | 
       accessibilityLabel={[message.title, message.subtitle].filter(Boolean).join('. ')}>
       <View style={[styles.face, { backgroundColor: theme.primarySoft }]}>
         <Image
-          source={Expressions[message.expression ?? 'happy']}
-          style={styles.faceImage}
+          source={faces[message.expression ?? 'happy']}
+          // Full width, cropped from the top, so the circle shows the face whatever the look.
+          style={{ width: FACE, height: FACE / PORTRAIT_ASPECT[look] }}
           contentFit="cover"
           contentPosition="top"
         />
@@ -85,10 +90,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     overflow: 'hidden',
-  },
-  faceImage: {
-    width: 40,
-    height: 46,
   },
   text: {
     flex: 1,
