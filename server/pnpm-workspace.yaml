@@ -1,0 +1,4 @@
+# Its own project, separate from the Expo app one folder up.
+packages: []
+allowBuilds:
+  esbuild: true
