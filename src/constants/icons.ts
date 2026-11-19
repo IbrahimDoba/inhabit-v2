@@ -80,6 +80,7 @@ export const ICONS: Record<string, IconArt> = {
   '1f504': { sticker: require('@/assets/icons/1f504.png') }, // 🔄
   '1f50a': { sticker: require('@/assets/icons/1f50a.png') }, // 🔊
   '1f50d': { sticker: require('@/assets/icons/1f50d.png') }, // 🔍
+  '1f514': { sticker: require('@/assets/icons/1f514.png') }, // 🔔
   '1f515': { sticker: require('@/assets/icons/1f515.png') }, // 🔕
   '1f525': { sticker: require('@/assets/icons/1f525.png') }, // 🔥
   '1f526': { sticker: require('@/assets/icons/1f526.png') }, // 🔦

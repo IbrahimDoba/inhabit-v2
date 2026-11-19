@@ -2,8 +2,8 @@ import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Expressions } from '@/constants/dragon';
 import { Spacing } from '@/constants/theme';
+import { useExpressions } from '@/hooks/use-dragon-look';
 import { useTheme } from '@/hooks/use-theme';
 
 export function formatCountdown(ms: number) {
@@ -24,6 +24,7 @@ type JourneyCardProps = {
 /** Shown instead of the energy bar while the dragon is away. */
 export function JourneyCard({ petName, remainingMs, progress }: JourneyCardProps) {
   const theme = useTheme();
+  const faces = useExpressions();
   const countdown = formatCountdown(remainingMs);
 
   return (
@@ -54,7 +55,7 @@ export function JourneyCard({ petName, remainingMs, progress }: JourneyCardProps
             },
           ]}>
           <Image
-            source={Expressions.happy}
+            source={faces.happy}
             style={styles.tokenImage}
             contentFit="cover"
             contentPosition="top"

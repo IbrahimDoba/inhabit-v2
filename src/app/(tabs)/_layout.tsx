@@ -2,12 +2,16 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 import { useQuests } from '@/hooks/use-quests';
 import { useTheme } from '@/hooks/use-theme';
+import { useHabitsDueSync } from '@/hooks/use-habits-due-sync';
+import { useHabitReminderSync } from '@/hooks/use-habit-reminder-sync';
 import { useWidgetSync } from '@/hooks/use-widget-sync';
 
 export default function TabsLayout() {
   const theme = useTheme();
   const { claimable } = useQuests();
   useWidgetSync();
+  useHabitReminderSync();
+  useHabitsDueSync();
 
   return (
     <NativeTabs

@@ -28,14 +28,21 @@ type CompanionContextValue = {
   completeHabit: (habitId: string) => CompanionEvent[];
   undoHabit: (habitId: string) => CompanionEvent[];
   startJourney: () => CompanionEvent[];
-  collectHomecoming: () => CompanionEvent[];
+  /** `bonusRate` adds a share of the journey's diamonds on top (Inhabit Plus). */
+  collectHomecoming: (bonusRate?: number) => CompanionEvent[];
   /** Catches up with the clock: a new day, or a journey that just ended. */
   refresh: () => CompanionEvent[];
   /** Dev only: bring the dragon home now instead of waiting hours. */
   devFinishJourney: () => void;
+  /** Dev only: jump straight to a growth stage, to see its art. */
+  devSetStage: (stage: Stage) => void;
   /** Records opening the app now (used by the dev week simulation). */
   checkIn: () => CompanionEvent[];
+  /** Tells the dragon how many habits are due today, which sizes the bar. */
+  setHabitsDue: (due: number) => CompanionEvent[];
   buySeed: (seed: string, price: number) => CompanionEvent[];
+  /** Buys a garden decoration or den furniture. */
+  buyItem: (item: string, price: number) => CompanionEvent[];
   /** Records tapping the dragon hello today. */
   greet: () => CompanionEvent[];
   claimQuest: (id: string, ctx: quests.QuestContext) => CompanionEvent[];
@@ -69,8 +76,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   // Actions return their events straight away, so they read the latest state from here.
   const latest = useRef(companion);
 
+  // `latest` is written by every action, never from here: a child's effect can act
+  // before this one runs, and copying the rendered state back would undo it.
   useEffect(() => {
-    latest.current = companion;
     if (companion) save(SAVE_KEY, SAVE_VERSION, companion);
   }, [companion]);
 
@@ -117,14 +125,29 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       completeHabit: (id) => run((s, now) => engine.completeHabit(s, id, now)),
       undoHabit: (id) => run((s, now) => engine.undoHabit(s, id, now)),
       startJourney: () => run((s, now) => engine.startJourney(s, now, Math.random)),
-      collectHomecoming: () => run(engine.collectHomecoming),
+      collectHomecoming: (bonusRate) => run((s, now) => engine.collectHomecoming(s, now, bonusRate)),
       refresh: () => run(engine.refresh),
       checkIn: () => run(engine.checkIn),
+      setHabitsDue: (due) => run((s, now) => engine.setHabitsDue(s, due, now)),
       buySeed: (seed, price) => run((s, now) => engine.buySeed(s, seed, price, now)),
+      buyItem: (item, price) => run((s, now) => engine.buyItem(s, item, price, now)),
       greet: () => run(quests.greet),
       claimQuest: (id, ctx) => run((s, now) => quests.claimQuest(s, id, ctx, now)),
       celebration,
       dismissCelebration: () => setCelebration(null),
+      devSetStage: (stage) =>
+        run((s) => ({
+          // A bigger bar would make today look unfinished; keep today's progress within the new bar.
+          state: {
+            ...s,
+            stage,
+            stageDays: 0,
+            energy: s.fullCareToday
+              ? engine.fullBarFor(stage, s.habitsDueToday)
+              : Math.min(s.energy, engine.fullBarFor(stage, s.habitsDueToday) - 1),
+          },
+          events: [],
+        })),
       devFinishJourney: () =>
         run((s, now) =>
           engine.refresh(s.journey ? { ...s, journey: { ...s.journey, returnsAt: now } } : s, now),

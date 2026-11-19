@@ -1,5 +1,7 @@
 import type { ImageSource } from 'expo-image';
 
+import { EGG_COLOURS } from '@/constants/dragon-colours';
+
 export type EggId = 'lavender' | 'mint' | 'gold' | 'pink' | 'blue' | 'plum';
 
 export type Egg = {
@@ -54,6 +56,9 @@ export const Eggs: readonly Egg[] = [
     shellCap: require('@/assets/images/shells/plum-cap.png'),
   },
 ];
+
+/** The eggs shown in onboarding: the ones a dragon colour exists for. */
+export const OfferedEggs: readonly Egg[] = Eggs.filter((egg) => egg.id in EGG_COLOURS);
 
 export function getEgg(id: EggId): Egg {
   return Eggs.find((egg) => egg.id === id) ?? Eggs[0];

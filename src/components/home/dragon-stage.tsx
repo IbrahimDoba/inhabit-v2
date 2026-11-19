@@ -51,7 +51,7 @@ const WOKEN = [
 const MOOD_MARK: Partial<Record<Mood, string>> = { sleepy: '💤', proud: '✨' };
 
 /** Standing height in the garden; older dragons stand taller. */
-const SPRITE_HEIGHT = { baby: 215, young: 250 } as const;
+const SPRITE_HEIGHT = { baby: 215, young: 250, teen: 255, grown: 260 } as const;
 // The bundle walk is here too, for walking back into the garden after exploring.
 const HOME_POSES: readonly DragonPose[] = ['idle', 'sleep', 'stroll', 'water', 'walk'];
 const AWAY_POSES: readonly DragonPose[] = ['walk'];
@@ -289,7 +289,7 @@ function Heart({ dx, delay, icon }: { dx: number; delay: number; icon: string })
       transform: [
         { translateX: dx + Math.sin(p * Math.PI * 2) * 6 },
         { translateY: -p * 90 },
-        { scale: 0.5 + Math.min(p * 3, 1) * 0.6 },
+        { scale: 0.75 + Math.min(p * 3, 1) * 0.25 },
       ],
     };
   });

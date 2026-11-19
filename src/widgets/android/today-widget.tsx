@@ -4,13 +4,19 @@
 
 import { FlexWidget, ImageWidget, TextWidget, type HexColor } from 'react-native-android-widget';
 
-import type { WidgetData, WidgetHabit } from '../widget-data';
+import { DRAGON_STILLS, DRAGON_STILL_ASPECT } from '@/constants/dragon-stills';
 
-const DRAGON = require('@/assets/images/dragon/anim/idle.png');
+import type { WidgetData, WidgetHabit } from '../widget-data';
 
 export const TICK_ACTION = 'TICK_HABIT';
 
-type Colors = { bg: [HexColor, HexColor]; text: HexColor; sub: HexColor; track: HexColor; card: HexColor };
+type Colors = {
+  bg: [HexColor, HexColor];
+  text: HexColor;
+  sub: HexColor;
+  track: HexColor;
+  card: HexColor;
+};
 
 const LIGHT: Colors = {
   bg: ['#DCEFFF', '#E7F3D3'],
@@ -50,8 +56,11 @@ export function TodayWidget({ data, width, height, dark }: Props) {
       <FlexWidget
         clickAction="OPEN_APP"
         style={{ ...root, justifyContent: 'center', alignItems: 'center' }}>
-        <ImageWidget image={DRAGON} imageWidth={64} imageHeight={79} />
-        <TextWidget text="Open Inhabit to meet your dragon" style={{ fontSize: 13, color: c.text }} />
+        <ImageWidget image={DRAGON_STILLS.lavender.baby} imageWidth={64} imageHeight={79} />
+        <TextWidget
+          text="Open Inhabit to meet your dragon"
+          style={{ fontSize: 13, color: c.text }}
+        />
       </FlexWidget>
     );
   }
@@ -93,8 +102,8 @@ export function TodayWidget({ data, width, height, dark }: Props) {
 
   const dragon = (
     <ImageWidget
-      image={DRAGON}
-      imageWidth={Math.round(dragonSize * 0.81)}
+      image={DRAGON_STILLS[data.colour ?? 'lavender'][data.stage ?? 'baby'] ?? DRAGON_STILLS.lavender.baby}
+      imageWidth={Math.round(dragonSize * DRAGON_STILL_ASPECT[data.stage ?? 'baby'])}
       imageHeight={Math.round(dragonSize)}
       clickAction="OPEN_APP"
     />
@@ -150,7 +159,11 @@ export function TodayWidget({ data, width, height, dark }: Props) {
         clickAction="OPEN_APP"
         style={{ ...root, justifyContent: 'center', alignItems: 'center', flexGap: 4 }}>
         {dragon}
-        <TextWidget text={status} maxLines={1} style={{ fontSize: 12, fontWeight: 'bold', color: c.text }} />
+        <TextWidget
+          text={status}
+          maxLines={1}
+          style={{ fontSize: 12, fontWeight: 'bold', color: c.text }}
+        />
         {energyBar(70)}
       </FlexWidget>
     );
@@ -186,7 +199,10 @@ export function TodayWidget({ data, width, height, dark }: Props) {
       <FlexWidget style={{ flexDirection: 'row', alignItems: 'center', flexGap: 12 }}>
         {dragon}
         <FlexWidget style={{ flexGap: 4 }}>
-          <TextWidget text={data.petName} style={{ fontSize: 17, fontWeight: 'bold', color: c.text }} />
+          <TextWidget
+            text={data.petName}
+            style={{ fontSize: 17, fontWeight: 'bold', color: c.text }}
+          />
           <TextWidget text={data.awayNote || status} style={{ fontSize: 13, color: c.sub }} />
           {energyBar(120)}
         </FlexWidget>

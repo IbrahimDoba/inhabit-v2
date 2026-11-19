@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 
+import { colourForEgg } from '@/constants/dragon-colours';
 import { useCompanion } from '@/hooks/use-companion';
 import { useHabits } from '@/hooks/use-habits';
 import { useOnboarding } from '@/hooks/use-onboarding';
@@ -13,7 +14,7 @@ import { buildWidgetData } from '@/widgets/widget-data';
  * it changes, and on opening the app applies habits ticked in the widget.
  */
 export function useWidgetSync() {
-  const { dragonName } = useOnboarding();
+  const { dragonName, eggId } = useOnboarding();
   const { companion, completeHabit } = useCompanion();
   const { habits, logDone } = useHabits();
   const applying = useRef(false);
@@ -44,6 +45,8 @@ export function useWidgetSync() {
   // Push the current day to the widget whenever it changes.
   useEffect(() => {
     if (!companion || !habits) return;
-    syncTodayWidget(buildWidgetData(companion, habits, dragonName, clockNow()));
-  }, [companion, habits, dragonName]);
+    syncTodayWidget(
+      buildWidgetData(companion, habits, dragonName, clockNow(), colourForEgg(eggId)),
+    );
+  }, [companion, habits, dragonName, eggId]);
 }

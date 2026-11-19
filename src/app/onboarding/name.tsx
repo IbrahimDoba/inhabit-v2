@@ -176,6 +176,6 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
   pressed: {
-    transform: [{ scale: 0.94 }],
+    transform: [{ scale: 0.97 }],
   },
 });

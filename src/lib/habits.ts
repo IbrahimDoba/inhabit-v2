@@ -42,6 +42,8 @@ export type Habit = {
   createdAt: number;
   /** The plant it grows as. Missing on older habits, which get a starter plant. */
   plant?: PlantSpecies;
+  /** A daily nudge at this time ("08:30") on the days it is due. Off when missing. */
+  reminder?: string;
 };
 
 export const HABIT_TITLE_MAX = 40;

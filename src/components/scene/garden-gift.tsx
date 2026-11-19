@@ -1,10 +1,12 @@
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
+import { NightShade } from '@/components/scene/night-shade';
 import { ThemedText } from '@/components/themed-text';
 import type { PropSprite } from '@/constants/prop-sprites';
 import { LANTERN_GLOW } from '@/constants/sky';
+import { gentleIn } from '@/constants/motion';
 
 type GardenGiftProps = {
   sprite: PropSprite;
@@ -15,16 +17,18 @@ type GardenGiftProps = {
   isNew: boolean;
   /** 0 by day, 1 at night: the lantern lights up. */
   glow?: number;
+  /** 0 by day, 1 at night: dusk settles on everything but the lit lantern. */
+  night?: number;
 };
 
 /** A journey gift placed in the garden. Upgrades make it a little bigger and sparkly. */
-export function GardenGift({ sprite, scale, level, isNew, glow = 0 }: GardenGiftProps) {
+export function GardenGift({ sprite, scale, level, isNew, glow = 0, night = 0 }: GardenGiftProps) {
   const size = scale * (1 + (level - 1) * 0.12);
   const width = sprite.width * size;
   const height = sprite.height * size;
 
   return (
-    <Animated.View entering={isNew ? ZoomIn.springify().damping(9) : FadeIn.duration(500)}>
+    <Animated.View entering={isNew ? gentleIn() : FadeIn.duration(500)}>
       {glow > 0 ? (
         <View
           pointerEvents="none"
@@ -43,7 +47,10 @@ export function GardenGift({ sprite, scale, level, isNew, glow = 0 }: GardenGift
           ]}
         />
       ) : null}
-      <Image source={sprite.source} style={{ width, height }} contentFit="contain" />
+      <View style={{ width, height }}>
+        <Image source={sprite.source} style={styles.fill} contentFit="contain" />
+        {glow > 0 ? null : <NightShade source={sprite.source} night={night} />}
+      </View>
       {level > 1 ? (
         <View style={styles.badge} pointerEvents="none">
           <ThemedText style={styles.sparkle}>{level > 2 ? '✨✨' : '✨'}</ThemedText>
@@ -54,6 +61,10 @@ export function GardenGift({ sprite, scale, level, isNew, glow = 0 }: GardenGift
 }
 
 const styles = StyleSheet.create({
+  fill: {
+    width: '100%',
+    height: '100%',
+  },
   glow: {
     position: 'absolute',
   },

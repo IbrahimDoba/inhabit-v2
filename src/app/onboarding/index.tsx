@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DragonSprite } from '@/components/dragon-sprite';
@@ -8,6 +8,7 @@ import { GroundShadow } from '@/components/ground-shadow';
 import { PrimaryButton } from '@/components/primary-button';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { cloudAvailable } from '@/lib/api';
 
 export default function WelcomeScreen() {
   return (
@@ -32,6 +33,17 @@ export default function WelcomeScreen() {
           <ThemedText type="small" themeColor="inkSecondary" style={styles.center}>
             No account needed. It all stays on your phone.
           </ThemedText>
+          {cloudAvailable ? (
+            <Pressable
+              onPress={() => router.push('/account')}
+              accessibilityRole="button"
+              hitSlop={8}
+              testID="welcome-signin">
+              <ThemedText type="smallBold" themeColor="ink" style={styles.center}>
+                I already have a dragon
+              </ThemedText>
+            </Pressable>
+          ) : null}
         </View>
       </SafeAreaView>
     </GardenBackdrop>

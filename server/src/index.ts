@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { auth } from './auth.js';
 import { db, pool } from './db/index.js';
 import { env } from './env.js';
+import { legalRoutes } from './routes/legal.js';
 import { saveRoutes } from './routes/save.js';
 import type { AppEnv } from './types.js';
 
@@ -18,6 +19,9 @@ app.get('/health', async (c) => {
   await pool.query('select 1');
   return c.json({ ok: true });
 });
+
+// Public pages: the privacy policy.
+app.route('/', legalRoutes);
 
 // Sign-in, sign-out, sessions and account deletion: all handled by Better Auth.
 app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));

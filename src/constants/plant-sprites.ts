@@ -11,7 +11,11 @@ export type PlantSpecies =
   | 'daisy'
   | 'cactus'
   | 'rose'
-  | 'cherry';
+  | 'cherry'
+  | 'lavender'
+  | 'poppy'
+  | 'lily'
+  | 'peony';
 export type PlantStage = 'sprout' | 'growing' | 'budding' | 'bloom' | 'resting';
 
 export type PlantSprite = { source: ImageSource; width: number; height: number };
@@ -72,5 +76,33 @@ export const PLANT_SPRITES: Record<PlantSpecies, Record<PlantStage, PlantSprite>
     budding: { source: require('@/assets/images/plants/cherry-budding.png'), width: 71, height: 108 },
     bloom: { source: require('@/assets/images/plants/cherry-bloom.png'), width: 76, height: 112 },
     resting: { source: require('@/assets/images/plants/cherry-resting.png'), width: 69, height: 102 },
+  },
+  lavender: {
+    sprout: { source: require('@/assets/images/plants/lavender-sprout.png'), width: 25, height: 22 },
+    growing: { source: require('@/assets/images/plants/lavender-growing.png'), width: 53, height: 75 },
+    budding: { source: require('@/assets/images/plants/lavender-budding.png'), width: 42, height: 93 },
+    bloom: { source: require('@/assets/images/plants/lavender-bloom.png'), width: 52, height: 111 },
+    resting: { source: require('@/assets/images/plants/lavender-resting.png'), width: 46, height: 111 },
+  },
+  poppy: {
+    sprout: { source: require('@/assets/images/plants/poppy-sprout.png'), width: 20, height: 20 },
+    growing: { source: require('@/assets/images/plants/poppy-growing.png'), width: 75, height: 71 },
+    budding: { source: require('@/assets/images/plants/poppy-budding.png'), width: 89, height: 103 },
+    bloom: { source: require('@/assets/images/plants/poppy-bloom.png'), width: 79, height: 111 },
+    resting: { source: require('@/assets/images/plants/poppy-resting.png'), width: 81, height: 111 },
+  },
+  lily: {
+    sprout: { source: require('@/assets/images/plants/lily-sprout.png'), width: 25, height: 20 },
+    growing: { source: require('@/assets/images/plants/lily-growing.png'), width: 68, height: 75 },
+    budding: { source: require('@/assets/images/plants/lily-budding.png'), width: 72, height: 103 },
+    bloom: { source: require('@/assets/images/plants/lily-bloom.png'), width: 73, height: 111 },
+    resting: { source: require('@/assets/images/plants/lily-resting.png'), width: 70, height: 111 },
+  },
+  peony: {
+    sprout: { source: require('@/assets/images/plants/peony-sprout.png'), width: 19, height: 16 },
+    growing: { source: require('@/assets/images/plants/peony-growing.png'), width: 75, height: 62 },
+    budding: { source: require('@/assets/images/plants/peony-budding.png'), width: 99, height: 103 },
+    bloom: { source: require('@/assets/images/plants/peony-bloom.png'), width: 97, height: 111 },
+    resting: { source: require('@/assets/images/plants/peony-resting.png'), width: 96, height: 111 },
   },
 };

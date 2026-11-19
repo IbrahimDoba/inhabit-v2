@@ -10,10 +10,12 @@ type ScreenProps = {
   title: string;
   hint?: string;
   children?: ReactNode;
+  /** Drawn over the screen and outside the scrolling content, such as a toast. */
+  overlay?: ReactNode;
 };
 
 /** Plain tab screen: a title, one line of secondary text, then scrolling content. */
-export function Screen({ title, hint, children }: ScreenProps) {
+export function Screen({ title, hint, children, overlay }: ScreenProps) {
   const theme = useTheme();
 
   return (
@@ -25,6 +27,7 @@ export function Screen({ title, hint, children }: ScreenProps) {
         {hint ? <ThemedText themeColor="textSecondary">{hint}</ThemedText> : null}
         {children}
       </ScrollView>
+      {overlay}
     </SafeAreaView>
   );
 }

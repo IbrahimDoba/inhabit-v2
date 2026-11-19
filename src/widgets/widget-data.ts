@@ -1,5 +1,6 @@
-import { fullBar, type CompanionState } from '@/engine/companion';
-import { ENERGY_PER_HABIT, STAGE_RULES } from '@/engine/rules';
+import type { DragonColour } from '@/constants/dragon-colours';
+import { fullBar, fullBarFor, type CompanionState } from '@/engine/companion';
+import { ENERGY_PER_HABIT, type Stage } from '@/engine/rules';
 import { groupForDay, type Habit } from '@/lib/habits';
 
 /** One habit as a widget shows it. */
@@ -8,6 +9,10 @@ export type WidgetHabit = { id: string; title: string; emoji: string; done: bool
 /** What the app knows that the widget should show. Same for iOS and Android. */
 export type WidgetData = {
   petName: string;
+  /** Which dragon to draw. */
+  colour: DragonColour;
+  /** Optional for widget payloads saved before growth-specific art. */
+  stage?: Stage;
   energy: number;
   fullBar: number;
   energyPerHabit: number;
@@ -30,6 +35,7 @@ export function buildWidgetData(
   habits: readonly Habit[],
   petName: string,
   now: number,
+  colour: DragonColour = 'lavender',
 ): WidgetData {
   const today = new Date(now);
   const tomorrow = new Date(today);
@@ -41,6 +47,8 @@ export function buildWidgetData(
 
   return {
     petName,
+    colour,
+    stage: companion.stage,
     energy: companion.energy,
     fullBar: fullBar(companion),
     energyPerHabit: ENERGY_PER_HABIT,
@@ -49,7 +57,7 @@ export function buildWidgetData(
       ? `Exploring, back in ${hoursAndMinutes(companion.journey.returnsAt - now)}`
       : '',
     tomorrowHabits: asWidget(tomorrow, []),
-    tomorrowFullBar: STAGE_RULES[companion.stage].fullBar,
+    tomorrowFullBar: fullBarFor(companion.stage, groupForDay(habits, tomorrow).flatMap((g) => g.habits).length),
   };
 }
 

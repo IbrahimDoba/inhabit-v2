@@ -19,5 +19,7 @@ export const env = {
   mailFrom: process.env.MAIL_FROM ?? 'Inhabit <no-reply@localhost>',
   /** The app's URL scheme (app.json "scheme"), trusted for sign-in. */
   appScheme: process.env.APP_SCHEME ?? 'inhabit',
+  /** Shown on the privacy page as the contact address. Optional. */
+  supportEmail: process.env.SUPPORT_EMAIL ?? '',
   isDev: process.env.NODE_ENV !== 'production',
 };

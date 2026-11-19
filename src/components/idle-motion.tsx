@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   Easing,
+  cancelAnimation,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -24,6 +25,8 @@ export function IdleMotion({ kind, style, children }: IdleMotionProps) {
   const t = useSharedValue(0);
 
   useEffect(() => {
+    cancelAnimation(t);
+    t.value = 0;
     if (reduceMotion) return;
     const ease = Easing.inOut(Easing.sin);
     t.value =
@@ -39,6 +42,7 @@ export function IdleMotion({ kind, style, children }: IdleMotionProps) {
             ),
             -1,
           );
+    return () => cancelAnimation(t);
   }, [kind, reduceMotion, t]);
 
   const animatedStyle = useAnimatedStyle(() =>

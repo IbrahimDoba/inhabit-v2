@@ -79,14 +79,20 @@
             }
           ]
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "ios": {
-      "bundleIdentifier": "com.ibrahimdoba.inhabit"
+      "bundleIdentifier": "com.ibrahimdoba.inhabit",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "supportsTablet": false
     }
   }
 }

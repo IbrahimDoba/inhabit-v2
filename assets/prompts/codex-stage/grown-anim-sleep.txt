@@ -1,0 +1,29 @@
+## 1. Style bible (goes into every prompt)
+
+**Character:** lavender body, pale mint belly with soft horizontal lines, mint wing
+membranes with lavender edges, warm gold horns and one row of gold spikes from the back of
+the head to the tail tip, one small gold nub on top of the head, dark plum eyes with a
+white highlight, rosy cheeks, little gold claws. Stands and walks upright on two back legs,
+never on four. Kind, never scary.
+
+**Style:** soft flat 2D illustration with gentle cel shading, no outlines, no text, no
+labels, no shadows on the ground.
+
+**Stills:** 2k, square unless it's a sheet. Background: transparent if T2 passes, otherwise
+one flat chroma green (#00B140) filling the frame. The whole subject inside the frame with
+space on every side.
+
+**Loops:** Seedance 2.5, 720p (or 1080p after T3), 4-5 s, silent, camera locked, subject
+stays in the same spot and size, flat green background, "ends in exactly the starting pose
+so the clip loops seamlessly". Start frame and end frame are the same still.
+
+**Scenes:** 16:9 or taller, flat sky colour so `key-sky.py` can replace it with the coded
+sky, no characters in the scene.
+
+## 2. The dragon, stage by stage
+
+
+The reference is the exact grown character identity. Match it faithfully; do not regress to the baby or young design.
+Production animation sprite strip: exactly FOUR equal-width cells in a SINGLE horizontal row, no drawn separators. Each cell shows the SAME full-body dragon in the next moment of ONE looping motion. Curled comfortably on the ground, closed eyes, head resting on folded forearms, tail wrapped around body, horns and folded wings clearly belonging to this mature stage. Four subtle sequential frames: slow breathing in, fullest inhale, breathing out, restful exhale. No pillow, bed, writing or z letters. All frames share identical anatomy, camera, drawing scale and foot baseline, centered in each cell; no crop or overlap. Generous white gaps. Only very subtle change between frames; no motion blur. Keep the whole wings, horns, tail, any held object and drops inside EACH cell. Flat pure white background. This is one animation strip, not four different dragons.
+
+Flat soft 2D cel shading matching the approved art. Pale lavender, mint, gold, dark plum eyes and rosy cheeks. Never scary, never quadrupedal. No text, labels, ground shadows or checkerboard. Wide landscape PNG, highest resolution. Override chroma-green instructions with uniform pure white.

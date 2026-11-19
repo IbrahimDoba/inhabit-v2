@@ -56,3 +56,71 @@ All four Finch polish items are done.
 - Rule: every icon that stands for an item (habit, idea, quiz answer, trait, streak goal, reminder option, reward, coming-soon card) sits on an `IconPebble` (or an `IconTile` for quests) so the white outline shows; only small icons inside a line of text ("+5 ⚡", "💎 60", group headers, chips) stay bare.
 - Credit (required by CC-BY 4.0) is in Settings → About. Home screen widgets still use system emoji.
 - Growing up, part 2 (2026-10-20): the Young dragon's five loops are made and wired in (`assets/images/dragon/young/anim-*.webp`, first frames as `anim-*.png`; idle 5 s, others 4 s; Seedance from the `young-*-start.png` frames). Its five face portraits (`young/{neutral,happy,sleepy,proud,curious}.png`, from `expression-sheet-young.json`) are used by toasts and `DragonPortrait` through `useExpressions()` / `useDragonLook()` (`src/hooks/use-dragon-look.ts`). Teen and Grown still use the Young art.
+
+## Habit reminders (2026-10-22)
+- Each habit can have a reminder time (`Habit.reminder`, "08:30"), set in the habit editor's REMINDER card (`src/components/reminder-picker.tsx`: switch, ±15 min, three quick picks per time of day; asks for notification permission on first use). Shown on the Home row as "· 🔔 8:00 AM".
+- `src/lib/habit-reminders.ts` (+ tests) plans one-off local notifications for the next 7 days on due days only, skipping today once the habit is done or the time has passed, soonest first, capped at 60 (iOS allows 64 pending). Ids `habit:<habit>:<day>:<hhmm>:<hash>` so edits reschedule.
+- `useHabitReminderSync` (tabs layout) syncs them with `syncHabitReminders` whenever habits or today's ticks change and when the app comes to the front. Uses the real clock, not the dev time-travel clock. The onboarding daily reminder now has its own id (`daily-reminder`) and no longer cancels habit reminders. Not on web.
+
+## Motion (2026-10-23)
+- Calmer pop-ups across the app at the user's request: no more zoom-from-nothing or springy overshoot. `src/constants/motion.ts` holds `gentleIn()` (fade while growing 94% to 100%, 260 ms, no bounce; used for the plant page picture, claimed quests, the streak flip, the thinking mark and a new garden gift) and `NUDGE` (1.1, the most an icon swells when something arrives: energy bolt, diamond counter, MAX badge). Pressed states shrink to 97% at most. Character motion (dragon hops, walking, watering, sleeping) is unchanged.
+
+## Backend (2026-11-10)
+- The API in `server/` is live on the user's Dokploy VPS at `https://inhabit-api.dailzero.com` (Hetzner, Cloudflare DNS `inhabit-api` A record, DNS only; Let's Encrypt via Dokploy; Build Path `/server`, Dockerfile, Autodeploy on pushes to `main` with watch path `server/**`). Postgres is the Dokploy service `inhabit-db`. The user's copy of the environment lives in gitignored `server/.env.dokploy.local`; secrets stay in Dokploy, never in chat.
+- Smoke-tested end to end against the live server: sign-in code → account, `/v1/me`, empty save, save v1, stale save refused with 409 and the newer copy, save v2, read back, bad body 400, delete account, 401 afterwards. The test account was deleted. No SMTP yet: codes show in the Dokploy logs (`[mail] No SMTP_URL set. Sign-in code for …`). Before real users: a domain for Resend, then `SMTP_URL` and `MAIL_FROM` in Dokploy.
+- App side (not started): "Save your dragon" email-code sign-in, automatic cloud save of the four saved slots (companion, habits, habit log, onboarding) as one document with `baseVersion` / 409 handling, restore on a new phone, sign out and delete account.
+
+## Art plan and the second dragon colour (2026-11-11)
+- `ART-PLAN.md` lists every asset the app might ever need (stages, 14 new dragon animations, transitions, outfits, decor, plants, the house, worlds, postcards, badges, UI and marketing art) with counts and priorities, plus the decisions made: two eggs and two dragon colours, the house in v1 behind a Home button, shop categories hats / shirts / leggings / backpacks with one item worn at a time (video loops can't stack items).
+- Higgsfield: the user's new account has the 3-day Ultra unlimited trial (ends 2026-11-14 07:46 UTC, auto-renewal cancelled). Unlimited generations only work from claude.ai chat, Cowork or ChatGPT, not from Claude Code, so briefs are written in `assets/prompts/briefs/` (first: `01-tests.md`), the user pastes them into a claude.ai chat with the Higgsfield connector, and results are pulled back here through the connector. Five reference images are uploaded to the account (media ids in the brief). Grok Image is not in the trial; batch 01 picks the replacement still model.
+- Second colour for free: `scripts/recolour.py <blue|pink|mint> <src> <out>` hue-shifts only the lavender band of every still and animated WebP (gold, mint and shading untouched; WebP settings match `video-cutout.py`; slow, about a minute per loop). Output in `assets/images/dragon-blue/` mirrors `assets/images/dragon/`. Rerun it after every new lavender asset.
+- Wiring: `src/constants/dragon-colours.ts` (`DragonColour`, `EGG_COLOURS`, `colourForEgg`); `useDragonColour()` reads the onboarding egg; `DragonSprite` looks its art up as `ART[colour][look][pose]` with shapes in `SHAPE[look][pose]`; portraits are `ExpressionArt[colour][look]` behind `useExpressions()`; the egg picker shows `OfferedEggs` (lavender and sky blue) and says the dragon matches the shell; widgets carry `colour` in `WidgetData` (iOS copies one shared PNG per colour). Eggs from older saves hatch lavender. Which colour is the second one (blue or pink) is still the user's call; switching is a rerun of the script and a rename.
+
+## Dragon stages and first room (2026-11-17)
+- Work is in this Expo v2 repo, not the old Swift garden app. User selected
+  dragons + starter room, then playtest; the larger P1/P2 art wish list stays open.
+- Generated teen and grown turnarounds, expressions and five core four-frame
+  animation strips, plus a corrected young sleeping strip. New lavender assets
+  have blue twins made by the existing recolour script. Baby/young video poses
+  are retained. Source prompts: `assets/prompts/codex-stage`; source images:
+  `assets/generated/codex-stage`; processor: `scripts/prepare-codex-stage-art.py`.
+- `lookForStage` now preserves all four earned stages. Sprite geometry is measured
+  from the processed assets (`constants/dragon-generated.ts`); portraits, toasts,
+  journey art and widget stills follow the earned stage and egg colour.
+- Home's house button opens `house.tsx`: matching day/night room art, starter bed,
+  rug, lamp with night artwork, and the dragon sleeping on its mattress at night.
+  Placement toggles persist in `inhabit.room` v1. The room uses theme tokens and
+  keeps night status-bar text legible. This is the free starter room, not the
+  unfinished paid furnishing/outfit shop.
+- Stopped hidden/unmounted still-art animation loops; corrected Android widget
+  aspect ratios for growth stages. Tests for room preference persistence and
+  recovery were added; the unit suite now contains 59 tests, including the playtest regression fixes.
+
+- Native iPhone 17 playtest and recording are complete. Evidence and limits:
+  `reference/art-integration-status.md`; short video:
+  `assets/generated/v2-playtest/playtest-highlights.mp4` (gitignored). Found and
+  fixed repeat extra diamonds when undoing/re-ticking after a full bar; the
+  optional daily `rewardedHabitsToday` ledger preserves payouts through undo
+  and resets on a new day. Homecoming now uses a light status bar on its dark
+  backdrop, and its story card separates entry motion from its static rotation.
+  Final typecheck/lint and all 59 unit tests pass. No commit was made.
+
+## MVP pass: bar fix, Inhabit Plus, release setup (2026-11-17)
+- **Energy bar sized to the day.** A Young dragon needed 20 energy (four habits), so anyone with three habits could never fill the bar, start a journey or earn diamonds. The bar is now the stage's bar or five per habit due today, whichever is smaller, never less than one habit (`fullBarFor`, `setHabitsDue` in `engine/companion.ts`; `habitsDueToday` in the save; `useHabitsDueSync` in the tabs layout). Removing habits so that the done ones fill the smaller bar pays the day. The widget's tomorrow bar uses tomorrow's count.
+- **Provider race fixed.** `CompanionProvider` copied the rendered state back into `latest` in an effect, which undid any action a child's effect had just run. `latest` is now written only by actions.
+- **Night garden.** Fairy lights and the campfire now light up when dusk arrives while the garden is open (the animated styles were missing `night` in their dependencies). Plants, gifts and decorations get a dusky copy of themselves at night (`NightShade`; RN's `filter: brightness` paints grey boxes behind transparent art on iOS, do not use it). The campfire moved off the fourth plant spot.
+- **Inhabit Plus (RevenueCat).** `react-native-purchases` 11. `src/lib/purchases.ts` (web twin `purchases.web.ts`) wraps the SDK; `PlusProvider` / `usePlus()` hold membership and plans; `src/app/plus.tsx` is the paywall (plans from the current offering, restore, terms). The offer lives in `src/constants/plus.ts`: 50% more diamonds from each journey (`collectHomecoming(state, now, bonusRate)`, event reason `plusBonus`) and Plus-only shop items (peony, archway, bridge, cloud bed). Entered from Settings, the shop banner and any locked item. Without `EXPO_PUBLIC_REVENUECAT_IOS_KEY` nothing can be bought and the paywall says so. Settings has a dev-only Free / Plus switch. Still to do outside the code: RevenueCat project, entitlement `plus`, products and an offering, the key, and a privacy policy address in `PRIVACY_URL`.
+- **Settings** now has the Plus card and renaming the dragon in release builds; developer tools stay dev-only.
+- **Release setup.** `eas.json` (development, preview, production with auto-incremented build numbers) and `usesNonExemptEncryption: false` in `app.json`. No EAS project id yet (`eas init`), and no Apple signing: TestFlight needs a paid Apple Developer membership and an App Store Connect app for `com.ibrahimdoba.inhabit`.
+- Playtested on the iPhone 17 simulator: three-habit Young dragon fills the bar and journeys; week simulation earns diamonds again; poppy grows sprout to bloom; dragon grows to Teen; cloud bed, lit mushroom lamp and cushion in the den at night; onboarding from Start over with the blue egg; blue dragon at all four stages; paywall and locked items. 74 unit tests, typecheck and lint pass. Not tested: Android, a real purchase.
+- Later the same day: decorations checked against a full garden (12 blooming habits, every decoration). The birdhouse and wind chime were hidden behind plants from the seventh habit on and moved to the back row. Renaming the dragon saves as it is typed. A privacy policy page was added to the server (`server/src/routes/legal.ts`, `GET /privacy`, optional `SUPPORT_EMAIL`) and linked from the Plus page and Settings as `PRIVACY_URL`; it is live only after the server change is pushed to `main`. Start over also turns the dev Plus switch off.
+
+## Accounts and cloud save in the app (2026-11-17)
+- **Optional account.** `src/app/account.tsx` ("Save your dragon"): email, 6-digit code, then a status page with Save now, Sign out and Delete account. Reached from Settings and from "I already have a dragon" on the welcome screen. Nothing leaves the phone until someone signs in.
+- **Client.** `src/lib/api.ts`: Better Auth's Expo client (`better-auth`, `@better-auth/expo`, session in `expo-secure-store`; `expo-network` and `expo-web-browser` are its peers) plus `fetchSave` / `putSave`. Server address from `EXPO_PUBLIC_API_URL`, default `https://inhabit-api.dailzero.com`. Not on web.
+- **What is saved.** One document: the raw stored slots `inhabit.onboarding`, `.companion`, `.habits`, `.habitLog`, `.room` (`CLOUD_SLOTS` in `src/lib/cloud-save.ts`; add new saved slots there). `inhabit.devPlus` and the sync bookkeeping (`inhabit.cloud`) stay on the phone.
+- **Rules** (`decide` in `cloud-save.ts`, 14 tests): push when only the phone changed; pull when the phone has no dragon or only the cloud changed; when both changed, never pick: the account page shows "Two gardens" and the person chooses. A phone without a finished onboarding never overwrites a cloud save.
+- **Wiring.** `CloudProvider` (`src/hooks/use-cloud.tsx`) sits above the data providers in `_layout.tsx`; after a restore it bumps a key so they remount and reload from storage. `useCloudAutoSync` saves 4 s after any change and on returning to the app, and opens the account page on a conflict.
+- **Server.** `GET /privacy` now describes the optional account. Nothing else changed on the server.
+- Tested on the simulator against a local copy of the server with a local Postgres (codes read from its log): sign in, first save, save after a tick, sign out, Start over, sign in from the welcome screen and get the whole garden back, a forced two-gardens conflict resolved by keeping the phone, delete account (rows gone). Not tested against the live server from the app, and no real email has been sent: `SMTP_URL` is still unset in Dokploy.
+- **Build trap.** After a Release simulator build, `Pods/Expo*/` prebuilt frameworks and `Pods/React-Core-prebuilt` can stay on the Release flavour while marked debug; the Debug app then crashes at launch in `facebook::react::Props::Props()`. Fix: delete `ios/Pods/{ExpoFont,ExpoModulesWorklets,ExpoModulesCore,ExpoImage,ExpoFileSystem,React-Core-prebuilt,ReactNativeDependencies,hermes-engine}`, `pod install`, clear the Debug build products, rebuild.

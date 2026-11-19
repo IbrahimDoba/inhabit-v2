@@ -8,11 +8,11 @@ import Animated, {
   withRepeat,
   withSequence,
   withTiming,
-  ZoomIn,
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Fonts } from '@/constants/theme';
+import { gentleIn } from '@/constants/motion';
 
 /**
  * Floats beside the dragon while it asks something: a bobbing "?" while it
@@ -40,7 +40,7 @@ export function ThinkingMark({ idea }: { idea: boolean }) {
 
   return (
     <Animated.View style={[styles.mark, bobStyle]} pointerEvents="none" accessible={false}>
-      <Animated.View key={idea ? 'idea' : 'ask'} entering={ZoomIn.duration(200)}>
+      <Animated.View key={idea ? 'idea' : 'ask'} entering={gentleIn()}>
         <ThemedText style={idea ? styles.idea : styles.ask} themeColor="ink">
           {idea ? '💡' : '?'}
         </ThemedText>

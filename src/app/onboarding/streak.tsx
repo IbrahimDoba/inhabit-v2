@@ -13,7 +13,6 @@ import Animated, {
   withRepeat,
   withSpring,
   withTiming,
-  ZoomIn,
 } from 'react-native-reanimated';
 
 import { DragonSprite } from '@/components/dragon-sprite';
@@ -22,6 +21,7 @@ import { PrimaryButton } from '@/components/primary-button';
 import { SunRays } from '@/components/sun-rays';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Spacing } from '@/constants/theme';
+import { gentleIn } from '@/constants/motion';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/hooks/use-theme';
 import { now } from '@/lib/clock';
@@ -96,7 +96,7 @@ export default function StreakScreen() {
         style={styles.counter}
         accessible
         accessibilityLabel={flipped ? '1 day streak' : '0 day streak'}>
-        <Animated.View key={flipped ? 'one' : 'zero'} entering={ZoomIn.duration(300)}>
+        <Animated.View key={flipped ? 'one' : 'zero'} entering={gentleIn()}>
           <ThemedText
             style={[styles.number, { color: flipped ? theme.onMoment : theme.onMomentMuted }]}>
             {flipped ? '1' : '0'}

@@ -48,3 +48,6 @@ example
 # raw image and video generations (~75 MB). Prompts in assets/prompts can recreate
 # them; the approved and app-ready art lives in assets/approved and assets/images.
 assets/generated/
+
+# browser automation scratch
+.playwright-cli/

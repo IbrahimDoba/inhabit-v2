@@ -1,13 +1,18 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Chip } from '@/components/chip';
 import { ThemedText } from '@/components/themed-text';
+import { NAME_MAX_LENGTH } from '@/constants/dragon';
 import { SKY_PREVIEWS } from '@/constants/sky';
-import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
+import { Fonts, MaxContentWidth, Radii, Spacing } from '@/constants/theme';
+import { STAGE_RULES, STAGES } from '@/engine/rules';
 import { dayKey } from '@/engine/time';
+import { PLUS_JOURNEY_BONUS, PRIVACY_URL } from '@/constants/plus';
+import { usePlus } from '@/hooks/use-plus';
+import { useCloud } from '@/hooks/use-cloud';
 import { useCompanion } from '@/hooks/use-companion';
 import { useHabits } from '@/hooks/use-habits';
 import { useOnboarding } from '@/hooks/use-onboarding';
@@ -38,9 +43,19 @@ export default function SettingsScreen() {
   const onboarding = useOnboarding();
   const companionStore = useCompanion();
   const habits = useHabits();
+  const plus = usePlus();
+  const cloud = useCloud();
   const { previewHour, setPreviewHour } = useSky();
   const offset = useClockOffset();
   const [confirmReset, setConfirmReset] = useState(false);
+  const [nameDraft, setNameDraft] = useState(onboarding.dragonName);
+
+  // An empty name is never saved: the field goes back to the dragon's name.
+  const saveName = () => {
+    const name = nameDraft.trim();
+    if (name) onboarding.setDragonName(name);
+    setNameDraft(name || onboarding.dragonName);
+  };
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
@@ -49,13 +64,14 @@ export default function SettingsScreen() {
     for (let day = 0; day < 7; day++) {
       const today = dayKey(clockNow());
       const due = groupForDay(habits.habits ?? [], new Date(clockNow())).flatMap((g) => g.habits);
+      companionStore.setHabitsDue(due.length);
       for (const habit of due) {
         companionStore.completeHabit(habit.id);
         habits.logDone(habit.id, today);
       }
       companionStore.startJourney();
       companionStore.devFinishJourney();
-      companionStore.collectHomecoming();
+      companionStore.collectHomecoming(plus.isPlus ? PLUS_JOURNEY_BONUS : 0);
       travel(24 * HOUR);
       companionStore.checkIn();
     }
@@ -68,6 +84,7 @@ export default function SettingsScreen() {
     }
     resetClock();
     setPreviewHour(null);
+    plus.setDevPlus(false);
     companionStore.reset();
     habits.reset();
     // Last: finishing onboarding's reset sends the app back to the welcome screen.
@@ -84,6 +101,67 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        <Pressable
+          onPress={() => router.push('/plus')}
+          accessibilityRole="button"
+          testID="settings-plus"
+          style={({ pressed }) => [
+            styles.card,
+            { backgroundColor: theme.primarySoft, borderColor: theme.primarySoft },
+            pressed && styles.pressed,
+          ]}>
+          <ThemedText type="smallBold">{plus.isPlus ? '💜 Inhabit Plus is on' : '💜 Inhabit Plus'}</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {plus.isPlus
+              ? 'More diamonds from every journey, and the Plus collection in the shop.'
+              : 'More diamonds from every journey, and a few special things for the garden and den.'}
+          </ThemedText>
+        </Pressable>
+
+        {cloud.available ? (
+          <Pressable
+            onPress={() => router.push('/account')}
+            accessibilityRole="button"
+            testID="settings-account"
+            style={({ pressed }) => [
+              styles.card,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+              pressed && styles.pressed,
+            ]}>
+            <ThemedText type="smallBold">{cloud.email ? '☁️ Saved to your account' : '☁️ Save your dragon'}</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              {cloud.email
+                ? cloud.email
+                : 'Add an email to keep your garden safe and bring it to a new phone.'}
+            </ThemedText>
+          </Pressable>
+        ) : null}
+
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <ThemedText type="smallBold">Your dragon&apos;s name</ThemedText>
+          <TextInput
+            value={nameDraft}
+            onChangeText={(text) => {
+              setNameDraft(text);
+              // Saved as it is typed, so closing the sheet mid-edit keeps it.
+              if (text.trim()) onboarding.setDragonName(text.trim());
+            }}
+            onBlur={saveName}
+            onSubmitEditing={saveName}
+            maxLength={NAME_MAX_LENGTH}
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoComplete="off"
+            returnKeyType="done"
+            accessibilityLabel="Dragon name"
+            testID="settings-name"
+            style={[
+              styles.input,
+              { color: theme.text, backgroundColor: theme.surfaceMuted },
+            ]}
+          />
+        </View>
+
         {__DEV__ ? (
           <>
             <ThemedText type="smallBold" themeColor="textSecondary">
@@ -143,6 +221,34 @@ export default function SettingsScreen() {
             </View>
 
             <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <ThemedText type="smallBold">Inhabit Plus</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Pretend to be a member without the store. {plus.available ? 'This build has a store key.' : 'This build has no store key.'}
+              </ThemedText>
+              <View style={styles.chips}>
+                <Chip label="Free" selected={!plus.devPlus} onPress={() => plus.setDevPlus(false)} />
+                <Chip label="Plus" testID="dev-plus-on" selected={plus.devPlus} onPress={() => plus.setDevPlus(true)} />
+              </View>
+            </View>
+
+            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <ThemedText type="smallBold">Growth stage</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Jump the dragon to any age to see its art. Each stage has its own portraits and animations.
+              </ThemedText>
+              <View style={styles.chips}>
+                {STAGES.map((stage) => (
+                  <Chip
+                    key={stage}
+                    label={STAGE_RULES[stage].label}
+                    selected={companionStore.companion?.stage === stage}
+                    onPress={() => companionStore.devSetStage(stage)}
+                  />
+                ))}
+              </View>
+            </View>
+
+            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <ThemedText type="smallBold">Time of day</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 Preview the garden sky without waiting for the clock.
@@ -160,9 +266,7 @@ export default function SettingsScreen() {
               </View>
             </View>
           </>
-        ) : (
-          <ThemedText themeColor="textSecondary">More settings are coming soon.</ThemedText>
-        )}
+        ) : null}
 
         <ThemedText type="smallBold" themeColor="textSecondary" style={styles.aboutHeading}>
           ABOUT
@@ -170,6 +274,11 @@ export default function SettingsScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           Emoji graphics by Twemoji (Twitter, Inc. and contributors), licensed under CC-BY 4.0.
         </ThemedText>
+        <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} accessibilityRole="link" hitSlop={8}>
+          <ThemedText type="small" themeColor="primary">
+            Privacy policy
+          </ThemedText>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -202,6 +311,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: Spacing.three,
     gap: Spacing.two,
+  },
+  input: {
+    minHeight: 48,
+    borderRadius: Radii.md,
+    paddingHorizontal: Spacing.three,
+    fontFamily: Fonts.heading,
+    fontSize: 18,
   },
   chips: {
     flexDirection: 'row',

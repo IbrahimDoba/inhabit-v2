@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
+import { NUDGE } from '@/constants/motion';
 import { useCountUp } from '@/hooks/use-count-up';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -21,7 +23,10 @@ export function DiamondPill({ diamonds }: { diamonds: number }) {
 
   useEffect(() => {
     if (diamonds > previous.current) {
-      bounce.value = withSequence(withSpring(1.2, { damping: 6 }), withSpring(1, { damping: 10 }));
+      bounce.value = withSequence(
+        withTiming(NUDGE, { duration: 160, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 240, easing: Easing.inOut(Easing.quad) }),
+      );
     }
     previous.current = diamonds;
   }, [diamonds, bounce]);

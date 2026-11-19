@@ -1,4 +1,5 @@
 import {
+  buyItem,
   buySeed,
   canStartJourney,
   checkIn,
@@ -9,6 +10,7 @@ import {
   journeyProgress,
   mood,
   refresh,
+  setHabitsDue,
   startJourney,
   undoHabit,
   type CompanionState,
@@ -104,6 +106,39 @@ describe('energy', () => {
 });
 
 describe('undo', () => {
+  it('does not turn a full-bar habit into an extra reward after undo', () => {
+    const full = doHabits(createCompanion(at(1)), at(1), 3).state;
+    const undone = undoHabit(full, 'h0', at(1)).state;
+    const repeated = completeHabit(undone, 'h0', at(1));
+    expect(repeated.state.diamonds).toBe(full.diamonds);
+    expect(repeated.events).toEqual([]);
+    expect(repeated.state.habitsDoneToday).toContain('h0');
+  });
+
+  it('keeps an extra reward after undo without paying it repeatedly', () => {
+    const full = doHabits(createCompanion(at(1)), at(1), 3).state;
+    let earned = completeHabit(full, 'extra', at(1)).state;
+    for (let i = 0; i < 3; i++) {
+      const undone = undoHabit(earned, 'extra', at(1)).state;
+      expect(undone.diamonds).toBe(full.diamonds + 1);
+      const repeated = completeHabit(undone, 'extra', at(1));
+      expect(repeated.events).toEqual([]);
+      earned = repeated.state;
+    }
+    expect(earned.diamonds).toBe(full.diamonds + 1);
+    const tomorrow = doHabits(earned, at(2), 3).state;
+    expect(completeHabit(tomorrow, 'extra', at(2)).state.diamonds)
+      .toBe(earned.diamonds + FULL_BAR_DIAMONDS + 1);
+  });
+
+  it('preserves rewarded ticks when undoing a habit from an older save', () => {
+    const full = doHabits(createCompanion(at(1)), at(1), 3).state;
+    const { rewardedHabitsToday: _ledger, ...legacy } = full;
+    const undone = undoHabit(legacy, 'h0', at(1)).state;
+    expect(completeHabit(undone, 'h0', at(1)).state.diamonds).toBe(full.diamonds);
+    expect(completeHabit(legacy, 'new-extra', at(1)).state.diamonds).toBe(full.diamonds + 1);
+  });
+
   it('removes the energy of a habit ticked by mistake', () => {
     let s = doHabits(createCompanion(at(1)), at(1), 2).state;
     s = undoHabit(s, 'h1', at(1)).state;
@@ -315,8 +350,72 @@ describe('shop', () => {
     expect(tooPoor.events).toContainEqual({ type: 'notEnoughDiamonds', needed: 230 });
   });
 
+  it('sells decorations and furniture the same way, and keeps them', () => {
+    let s: CompanionState = { ...createCompanion(at(1)), diamonds: 100, ownedItems: undefined };
+    const bought = buyItem(s, 'swing', 80, at(1));
+    s = bought.state;
+    expect(s.diamonds).toBe(20);
+    expect(s.ownedItems).toEqual(['swing']);
+    expect(bought.events).toContainEqual({ type: 'itemBought', item: 'swing', price: 80 });
+    expect(buyItem(s, 'swing', 80, at(1)).state).toEqual(s);
+
+    const tooPoor = buyItem(s, 'archway', 150, at(1));
+    expect(tooPoor.state.diamonds).toBe(20);
+    expect(tooPoor.events).toContainEqual({ type: 'notEnoughDiamonds', needed: 130 });
+    // A new day changes nothing that was bought.
+    expect(buyItem(s, 'gnome', 10, at(2)).state.ownedItems).toEqual(['swing', 'gnome']);
+  });
+
   it('works on saves from before the shop existed', () => {
     const old = { ...createCompanion(at(1)), diamonds: 80, ownedSeeds: undefined };
     expect(buySeed(old, 'daisy', 60, at(1)).state.ownedSeeds).toEqual(['daisy']);
+  });
+});
+
+describe('a bar sized to the day', () => {
+  const young = (): CompanionState => ({ ...createCompanion(at(1)), stage: 'young' });
+
+  it('fills with three habits when only three are due', () => {
+    let s = setHabitsDue(young(), 3, at(1)).state;
+    expect(fullBar(s)).toBe(15);
+    s = completeHabit(s, 'a', at(1)).state;
+    s = completeHabit(s, 'b', at(1)).state;
+    const { state, events } = completeHabit(s, 'c', at(1));
+    expect(state.fullCareToday).toBe(true);
+    expect(events.some((e) => e.type === 'barFull')).toBe(true);
+  });
+
+  it('keeps the stage bar when enough habits are due', () => {
+    expect(fullBar(setHabitsDue(young(), 6, at(1)).state)).toBe(20);
+  });
+
+  it('never drops below one habit', () => {
+    expect(fullBar(setHabitsDue(young(), 0, at(1)).state)).toBe(5);
+  });
+
+  it('pays the day when a removed habit makes the done ones enough', () => {
+    let s = setHabitsDue(young(), 4, at(1)).state;
+    s = completeHabit(s, 'a', at(1)).state;
+    s = completeHabit(s, 'b', at(1)).state;
+    const { state, events } = setHabitsDue(s, 2, at(1));
+    expect(state.fullCareToday).toBe(true);
+    expect(events.filter((e) => e.type === 'barFull')).toHaveLength(1);
+    expect(setHabitsDue(state, 1, at(1)).events).toHaveLength(0);
+  });
+
+  it('does not pay an empty day', () => {
+    expect(setHabitsDue(young(), 0, at(1)).state.fullCareToday).toBe(false);
+  });
+});
+
+describe('a journey bonus', () => {
+  it('adds a share of the journey diamonds, never of the welcome gift', () => {
+    let s = doHabits(createCompanion(at(1)), at(1), 3).state;
+    s = startJourney(s, at(1), rng).state;
+    const back = refresh(s, at(1) + 9 * HOUR).state;
+    const { state, events } = collectHomecoming(back, at(1) + 9 * HOUR, 0.5);
+    const base = STAGE_RULES.baby.journeyDiamonds;
+    expect(events).toContainEqual({ type: 'diamonds', gained: base / 2, reason: 'plusBonus' });
+    expect(state.diamonds).toBe(FULL_BAR_DIAMONDS + base + FIRST_JOURNEY_BONUS + base / 2);
   });
 });

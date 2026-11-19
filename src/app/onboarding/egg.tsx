@@ -8,7 +8,7 @@ import { GroundShadow } from '@/components/ground-shadow';
 import { IdleMotion } from '@/components/idle-motion';
 import { PrimaryButton } from '@/components/primary-button';
 import { ThemedText } from '@/components/themed-text';
-import { Eggs, getEgg } from '@/constants/eggs';
+import { getEgg, OfferedEggs } from '@/constants/eggs';
 import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,7 +26,8 @@ export default function EggScreen() {
             Choose your egg
           </ThemedText>
           <ThemedText themeColor="inkSecondary" style={styles.center}>
-            Every egg holds a baby dragon. Pick the one that feels like yours.
+            Every egg holds a baby dragon the colour of its shell. Pick the one that feels like
+            yours.
           </ThemedText>
         </View>
 
@@ -50,7 +51,7 @@ export default function EggScreen() {
               {selected.label} egg
             </ThemedText>
             <View style={styles.row} accessibilityRole="radiogroup">
-              {Eggs.map((egg) => {
+              {OfferedEggs.map((egg) => {
                 const isSelected = egg.id === eggId;
                 return (
                   <Pressable
@@ -121,15 +122,15 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   option: {
-    width: 48,
-    height: 60,
+    width: 64,
+    height: 80,
     borderRadius: Radii.md,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   smallEgg: {
-    width: 34,
-    height: 46,
+    width: 46,
+    height: 62,
   },
 });

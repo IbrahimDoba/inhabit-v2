@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PlantPicker } from '@/components/plant-picker';
@@ -13,6 +13,7 @@ import { PLANT_SPRITES } from '@/constants/plant-sprites';
 import { PLANTS } from '@/constants/plants';
 import { PANEL_DAY } from '@/constants/sky';
 import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
+import { gentleIn } from '@/constants/motion';
 import { dayKey } from '@/engine/time';
 import { useCompanion } from '@/hooks/use-companion';
 import { useHabits } from '@/hooks/use-habits';
@@ -88,7 +89,7 @@ export default function PlantScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.hero, { backgroundColor: PANEL_DAY }]}>
-          <Animated.View key={`${plant.species}-${plant.sprite}`} entering={ZoomIn.springify().damping(12)}>
+          <Animated.View key={`${plant.species}-${plant.sprite}`} entering={gentleIn()}>
             <Image
               source={sprite.source}
               style={{ width: sprite.width * heroScale, height: sprite.height * heroScale }}

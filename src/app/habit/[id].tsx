@@ -15,6 +15,7 @@ import { Chip } from '@/components/chip';
 import { IconPebble } from '@/components/icon';
 import { PlantPicker } from '@/components/plant-picker';
 import { PrimaryButton } from '@/components/primary-button';
+import { ReminderPicker } from '@/components/reminder-picker';
 import { ThemedText } from '@/components/themed-text';
 import { HABIT_EMOJI, SUGGESTION_GROUPS } from '@/constants/habit-suggestions';
 import { Fonts, MaxContentWidth, Radii, Spacing } from '@/constants/theme';
@@ -59,6 +60,7 @@ export default function HabitEditorScreen() {
           timeOfDay: existing.timeOfDay,
           days: existing.days,
           plant: existing.plant,
+          reminder: existing.reminder,
         }
       : { title: '', emoji: '✨', timeOfDay: time ?? 'any', days: [...EVERY_DAY], plant: 'sunflower' },
   );
@@ -256,6 +258,17 @@ export default function HabitEditorScreen() {
 
           <View style={styles.section}>
             <ThemedText type="smallBold" themeColor="textSecondary">
+              REMINDER
+            </ThemedText>
+            <ReminderPicker
+              value={draft.reminder}
+              timeOfDay={draft.timeOfDay}
+              onChange={(reminder) => set({ reminder })}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <ThemedText type="smallBold" themeColor="textSecondary">
               ITS PLANT
             </ThemedText>
             <PlantPicker selected={draft.plant} onSelect={(plant) => set({ plant })} />
@@ -341,7 +354,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   pressed: {
-    transform: [{ scale: 0.94 }],
+    transform: [{ scale: 0.97 }],
   },
   section: {
     gap: Spacing.two,

@@ -14,10 +14,12 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import type { DragonPose } from '@/components/dragon-sprite';
 import { Icon } from '@/components/icon';
+import { GardenDecor } from '@/components/scene/garden-decor';
 import { GardenGift } from '@/components/scene/garden-gift';
 import { TendSparkle } from '@/components/scene/tend-sparkle';
 import { HabitPlant } from '@/components/scene/habit-plant';
 import { SkyBackdrop } from '@/components/scene/sky-backdrop';
+import { DECOR, type DecorId } from '@/constants/decor';
 import type { PlantSprite } from '@/constants/plant-sprites';
 import { PROP_SPRITES } from '@/constants/prop-sprites';
 import { FIREFLY, WARM_LIGHT } from '@/constants/sky';
@@ -40,6 +42,8 @@ type GardenSceneProps = {
   plants?: readonly GardenPlant[];
   /** Gifts from journeys, each in its own spot. */
   gifts?: readonly GardenSpot[];
+  /** Decorations bought in the shop, each in its own spot. */
+  decor?: readonly DecorId[];
   /** A gift just brought home, which pops in. */
   newGift?: PropId | null;
   /** The dragon has just come home from exploring: it walks in from the edge of the garden. */
@@ -112,6 +116,7 @@ export function GardenScene({
   topInset = 0,
   plants = [],
   gifts = [],
+  decor = [],
   newGift = null,
   arriving = false,
   visit = null,
@@ -278,6 +283,7 @@ export function GardenScene({
             level={gift.level}
             isNew={gift.prop === newGift}
             glow={gift.prop === 'lantern' ? sky.night : 0}
+            night={sky.night}
           />
         </View>
       ),
@@ -303,6 +309,7 @@ export function GardenScene({
             sprite={plant.sprite}
             scale={scale}
             phase={i % 4}
+            night={sky.night}
             label={plant.label}
             onPress={plant.onPress}
           />
@@ -310,8 +317,25 @@ export function GardenScene({
       ),
     };
   });
+  const placedDecor = DECOR.filter((item) => decor.includes(item.id)).map((item) => {
+    const { spot } = item;
+    // Further up the meadow is further away, so a little smaller.
+    const size = spot.width * plantScale * (1 - spot.up * 0.25);
+    return {
+      spot,
+      node: (
+        <View
+          key={`decor-${item.id}`}
+          pointerEvents="none"
+          style={[styles.plant, { left: spot.x * width - size / 2, bottom: spot.up * meadow + 6 }]}>
+          <GardenDecor item={item} size={size} night={sky.night} />
+        </View>
+      ),
+    };
+  });
+
   // Draw from the back of the meadow to the front, with the dragon in between.
-  const placed = [...placedPlants, ...placedGifts].sort((a, b) => b.spot.up - a.spot.up);
+  const placed = [...placedPlants, ...placedGifts, ...placedDecor].sort((a, b) => b.spot.up - a.spot.up);
   const back = placed.filter((p) => p.spot.up >= FRONT_ROW);
   const front = placed.filter((p) => p.spot.up < FRONT_ROW);
 

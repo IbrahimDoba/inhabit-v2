@@ -5,12 +5,12 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
+import { NUDGE } from '@/constants/motion';
 import { useCountUp } from '@/hooks/use-count-up';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -31,7 +31,10 @@ export function EnergyBar({ value, max }: EnergyBarProps) {
   useEffect(() => {
     fill.value = withTiming(fraction, { duration: 600, easing: Easing.out(Easing.cubic) });
     if (value > previous.current) {
-      pop.value = withSequence(withSpring(1.5, { damping: 6 }), withSpring(1, { damping: 10 }));
+      pop.value = withSequence(
+        withTiming(NUDGE, { duration: 160, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 240, easing: Easing.inOut(Easing.quad) }),
+      );
     }
     previous.current = value;
   }, [fraction, value, fill, pop]);

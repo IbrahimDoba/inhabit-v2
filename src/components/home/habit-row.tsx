@@ -6,7 +6,6 @@ import Animated, {
   useReducedMotion,
   useSharedValue,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -15,6 +14,7 @@ import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { formatTime } from '@/lib/habit-reminders';
 
 type HabitRowProps = {
   emoji: string;
@@ -23,6 +23,8 @@ type HabitRowProps = {
   /** What ticking it earns right now, e.g. "+5 ⚡" or "+1 💎". */
   reward: string;
   onToggle: () => void;
+  /** Its reminder time ("08:30"), shown next to the reward. */
+  reminder?: string;
   /** Ticking starts, with the tick's centre on screen, so energy can fly from it. */
   onTickStart?: (from: Point) => void;
   /** Tapping the name opens the habit for editing. */
@@ -38,6 +40,7 @@ export function HabitRow({
   done,
   reward,
   onToggle,
+  reminder,
   onTickStart,
   onEdit,
 }: HabitRowProps) {
@@ -60,7 +63,7 @@ export function HabitRow({
 
   const toggle = () => {
     if (ticking) return;
-    press.set(withSequence(withSpring(0.8, { damping: 8 }), withSpring(1, { damping: 8 })));
+    press.set(withSequence(withTiming(0.92, { duration: 90 }), withTiming(1, { duration: 160 })));
     if (done || reduceMotion) {
       onToggle();
       return;
@@ -105,7 +108,7 @@ export function HabitRow({
           </ThemedText>
           {!done ? (
             <ThemedText type="small" themeColor="inkSecondary">
-              {reward}
+              {reminder ? `${reward} · 🔔 ${formatTime(reminder)}` : reward}
             </ThemedText>
           ) : null}
         </View>

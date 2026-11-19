@@ -48,6 +48,8 @@ export type CompanionState = {
   today: string;
   energy: number;
   habitsDoneToday: string[];
+  /** Habits included in today's full-bar or extra reward, retained after undo. */
+  rewardedHabitsToday?: string[];
   /** The bar has filled today. It fills at most once a day. */
   fullCareToday: boolean;
   /** Day a journey last started, so only one leaves per day. */
@@ -64,6 +66,13 @@ export type CompanionState = {
   lastCheckIn: string | null;
   /** Plant types bought in the shop, by id. Starter plants are always available. */
   ownedSeeds?: string[];
+  /** Garden decorations and den furniture bought in the shop, by id. Kept forever. */
+  ownedItems?: string[];
+  /**
+   * How many habits are due today. The bar never asks for more habits than the
+   * day has, so a short list can still fill it. Missing in older saves.
+   */
+  habitsDueToday?: number;
   /** Day the dragon was last tapped hello, for the daily quest. */
   greetedOn?: string | null;
   /** Daily quests claimed, for one day only. */
@@ -81,13 +90,14 @@ export type CompanionEvent =
   | {
       type: 'diamonds';
       gained: number;
-      reason: 'extraHabit' | 'fullBar' | 'journey' | 'welcomeBonus' | 'quest';
+      reason: 'extraHabit' | 'fullBar' | 'journey' | 'welcomeBonus' | 'quest' | 'plusBonus';
     }
   | { type: 'journeyStarted'; returnsAt: number }
   | { type: 'journeyReturned' }
   | { type: 'giftPlaced'; spot: GardenSpot; upgraded: boolean }
   | { type: 'streak'; streak: number }
   | { type: 'seedBought'; seed: string; price: number }
+  | { type: 'itemBought'; item: string; price: number }
   | { type: 'notEnoughDiamonds'; needed: number };
 
 export type Result = { state: CompanionState; events: CompanionEvent[] };
@@ -104,6 +114,7 @@ export function createCompanion(now: number): CompanionState {
     today: dayKey(now),
     energy: 0,
     habitsDoneToday: [],
+    rewardedHabitsToday: [],
     fullCareToday: false,
     journeyStartedOn: null,
     journey: null,
@@ -118,8 +129,47 @@ export function createCompanion(now: number): CompanionState {
   };
 }
 
+/**
+ * The bar for a stage on a day with `due` habits. Each stage asks for more, but
+ * never for more habits than the day has: someone with three habits can always
+ * fill the bar. With no count (older saves) it is the stage's own bar.
+ */
+export function fullBarFor(stage: Stage, due?: number): number {
+  const stageBar = STAGE_RULES[stage].fullBar;
+  if (due === undefined) return stageBar;
+  return Math.min(stageBar, Math.max(due, 1) * ENERGY_PER_HABIT);
+}
+
 export function fullBar(state: CompanionState): number {
-  return STAGE_RULES[state.stage].fullBar;
+  return fullBarFor(state.stage, state.habitsDueToday);
+}
+
+/**
+ * Records how many habits are due today. If habits were removed and what is
+ * already done now fills the smaller bar, the day's reward is paid.
+ */
+export function setHabitsDue(state: CompanionState, due: number, now: number): Result {
+  const { state: current, events } = refresh(state, now);
+  if (current.habitsDueToday === due) return { state: current, events };
+  const next: CompanionState = { ...current, habitsDueToday: due };
+  if (next.fullCareToday || next.energy <= 0 || next.energy < fullBar(next)) {
+    return { state: next, events };
+  }
+  return { state: payFullBar({ ...next, energy: fullBar(next) }, events), events };
+}
+
+function payFullBar(state: CompanionState, events: CompanionEvent[]): CompanionState {
+  const next: CompanionState = {
+    ...state,
+    fullCareToday: true,
+    rewardedHabitsToday: [...state.habitsDoneToday],
+    stageDays: state.stageDays + 1,
+    totalFullCareDays: state.totalFullCareDays + 1,
+    diamonds: state.diamonds + FULL_BAR_DIAMONDS,
+  };
+  events.push({ type: 'barFull' });
+  events.push({ type: 'diamonds', gained: FULL_BAR_DIAMONDS, reason: 'fullBar' });
+  return growIfReady(next, events);
 }
 
 /**
@@ -132,7 +182,14 @@ export function refresh(state: CompanionState, now: number): Result {
 
   const today = dayKey(now);
   if (today !== next.today) {
-    next = { ...next, today, energy: 0, habitsDoneToday: [], fullCareToday: false };
+    next = {
+      ...next,
+      today,
+      energy: 0,
+      habitsDoneToday: [],
+      rewardedHabitsToday: [],
+      fullCareToday: false,
+    };
   }
 
   if (next.journey && now >= next.journey.returnsAt) {
@@ -153,9 +210,16 @@ export function completeHabit(state: CompanionState, habitId: string, now: numbe
     habitsDoneToday: [...current.habitsDoneToday, habitId],
   };
 
-  // After the day's main reward, habits still pay a little.
+  // After the day's main reward, each additional habit pays once, even after undo.
   if (next.fullCareToday) {
-    next = { ...next, diamonds: next.diamonds + EXTRA_HABIT_DIAMONDS };
+    const rewarded = current.rewardedHabitsToday ?? current.habitsDoneToday;
+    next = { ...next, rewardedHabitsToday: rewarded };
+    if (rewarded.includes(habitId)) return { state: next, events };
+    next = {
+      ...next,
+      rewardedHabitsToday: [...rewarded, habitId],
+      diamonds: next.diamonds + EXTRA_HABIT_DIAMONDS,
+    };
     events.push({ type: 'diamonds', gained: EXTRA_HABIT_DIAMONDS, reason: 'extraHabit' });
     return { state: next, events };
   }
@@ -165,18 +229,7 @@ export function completeHabit(state: CompanionState, habitId: string, now: numbe
   events.push({ type: 'energy', gained: energy - next.energy, energy, fullBar: bar });
   next = { ...next, energy };
 
-  if (energy >= bar) {
-    next = {
-      ...next,
-      fullCareToday: true,
-      stageDays: next.stageDays + 1,
-      totalFullCareDays: next.totalFullCareDays + 1,
-      diamonds: next.diamonds + FULL_BAR_DIAMONDS,
-    };
-    events.push({ type: 'barFull' });
-    events.push({ type: 'diamonds', gained: FULL_BAR_DIAMONDS, reason: 'fullBar' });
-    next = growIfReady(next, events);
-  }
+  if (energy >= bar) next = payFullBar(next, events);
 
   return { state: next, events };
 }
@@ -194,7 +247,18 @@ export function undoHabit(state: CompanionState, habitId: string, now: number): 
     ? current.energy
     : Math.max(current.energy - ENERGY_PER_HABIT, 0);
 
-  return { state: { ...current, habitsDoneToday, energy }, events };
+  return {
+    state: {
+      ...current,
+      habitsDoneToday,
+      energy,
+      // Older saves have no ledger. Preserve their rewarded ticks before removing one.
+      ...(current.fullCareToday
+        ? { rewardedHabitsToday: current.rewardedHabitsToday ?? current.habitsDoneToday }
+        : {}),
+    },
+    events,
+  };
 }
 
 function growIfReady(state: CompanionState, events: CompanionEvent[]): CompanionState {
@@ -204,7 +268,7 @@ function growIfReady(state: CompanionState, events: CompanionEvent[]): Companion
   const to = STAGES[STAGES.indexOf(state.stage) + 1];
   events.push({ type: 'grewUp', from: state.stage, to });
   // A bigger bar would make today look unfinished; today stays full.
-  return { ...state, stage: to, stageDays: 0, energy: STAGE_RULES[to].fullBar };
+  return { ...state, stage: to, stageDays: 0, energy: fullBarFor(to, state.habitsDueToday) };
 }
 
 export function canStartJourney(state: CompanionState): boolean {
@@ -244,7 +308,7 @@ export function journeyProgress(state: CompanionState, now: number): number {
 }
 
 /** Accepts what the dragon brought home: its diamonds, and its gift placed in the garden. */
-export function collectHomecoming(state: CompanionState, now: number): Result {
+export function collectHomecoming(state: CompanionState, now: number, bonusRate = 0): Result {
   const { state: current, events } = refresh(state, now);
   const trip = current.homecoming;
   if (!trip) return { state: current, events };
@@ -255,6 +319,9 @@ export function collectHomecoming(state: CompanionState, now: number): Result {
     events.push({ type: 'diamonds', gained: trip.diamonds - welcome, reason: 'journey' });
   }
   if (welcome > 0) events.push({ type: 'diamonds', gained: welcome, reason: 'welcomeBonus' });
+  // A bonus (Inhabit Plus) is a share of the journey's own diamonds, not of the welcome gift.
+  const bonus = Math.round((trip.diamonds - welcome) * bonusRate);
+  if (bonus > 0) events.push({ type: 'diamonds', gained: bonus, reason: 'plusBonus' });
   events.push({ type: 'giftPlaced', spot, upgraded });
 
   return {
@@ -262,7 +329,7 @@ export function collectHomecoming(state: CompanionState, now: number): Result {
       ...current,
       homecoming: null,
       journeysCompleted: current.journeysCompleted + 1,
-      diamonds: current.diamonds + trip.diamonds,
+      diamonds: current.diamonds + trip.diamonds + bonus,
       garden,
     },
     events,
@@ -342,6 +409,25 @@ export function buySeed(state: CompanionState, seed: string, price: number, now:
   events.push({ type: 'seedBought', seed, price });
   return {
     state: { ...current, diamonds: current.diamonds - price, ownedSeeds: [...owned, seed] },
+    events,
+  };
+}
+
+/**
+ * Buys a garden decoration or a piece of den furniture. Same promise as seeds:
+ * diamonds never go below zero, and what is bought is kept for good.
+ */
+export function buyItem(state: CompanionState, item: string, price: number, now: number): Result {
+  const { state: current, events } = refresh(state, now);
+  const owned = current.ownedItems ?? [];
+  if (owned.includes(item)) return { state: current, events };
+  if (current.diamonds < price) {
+    events.push({ type: 'notEnoughDiamonds', needed: price - current.diamonds });
+    return { state: current, events };
+  }
+  events.push({ type: 'itemBought', item, price });
+  return {
+    state: { ...current, diamonds: current.diamonds - price, ownedItems: [...owned, item] },
     events,
   };
 }

@@ -11,7 +11,6 @@ import Animated, {
   useSharedValue,
   withDelay,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
@@ -22,6 +21,7 @@ import { PrimaryButton } from '@/components/primary-button';
 import { IconPebble } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
+import { NUDGE } from '@/constants/motion';
 import { STAGE_RULES, type Stage } from '@/engine/rules';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -184,7 +184,13 @@ function MaxBar() {
     fill.set(withDelay(150, withTiming(1, { duration: 450, easing: Easing.out(Easing.cubic) })));
     label.set(withDelay(550, withTiming(1, { duration: 250 })));
     badge.set(
-      withDelay(550, withSequence(withSpring(1.35, { damping: 6 }), withSpring(1, { damping: 9 }))),
+      withDelay(
+        550,
+        withSequence(
+          withTiming(NUDGE, { duration: 200, easing: Easing.out(Easing.quad) }),
+          withTiming(1, { duration: 260 }),
+        ),
+      ),
     );
   }, [fill, badge, label, reduceMotion]);
 
@@ -192,7 +198,7 @@ function MaxBar() {
   const badgeStyle = useAnimatedStyle(() => ({ transform: [{ scale: badge.get() }] }));
   const labelStyle = useAnimatedStyle(() => ({
     opacity: label.get(),
-    transform: [{ scale: 0.6 + label.get() * 0.4 }],
+    transform: [{ scale: 0.94 + label.get() * 0.06 }],
   }));
 
   return (

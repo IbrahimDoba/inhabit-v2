@@ -81,10 +81,51 @@ export const PLANTS: Record<PlantSpecies, PlantInfo> = {
     about: 'A cherry tree takes patience, then blossoms beautifully. For the long-term habits.',
     price: 250,
   },
+  lavender: {
+    id: 'lavender',
+    name: 'Lavender',
+    emoji: '💜',
+    meaning: 'Calm',
+    about: 'Lavender settles a busy mind. For habits that slow the day down.',
+    price: 80,
+  },
+  poppy: {
+    id: 'poppy',
+    name: 'Poppy',
+    emoji: '🌺',
+    meaning: 'Rest',
+    about: 'Poppies close up at dusk and open again fresh. For sleep and winding down.',
+    price: 120,
+  },
+  lily: {
+    id: 'lily',
+    name: 'Lily',
+    emoji: '🤍',
+    meaning: 'Kindness',
+    about: 'Lilies are given to say someone matters. For habits you do for other people.',
+    price: 180,
+  },
+  peony: {
+    id: 'peony',
+    name: 'Peony',
+    emoji: '🏵️',
+    meaning: 'Abundance',
+    about: 'A peony bursts into more petals than seems possible. For habits that fill your life up.',
+    price: 220,
+  },
 };
 
 export const STARTER_PLANTS: readonly PlantSpecies[] = ['sunflower', 'tulip', 'bellflower', 'bluebell'];
-export const SHOP_PLANTS: readonly PlantSpecies[] = ['daisy', 'cactus', 'rose', 'cherry'];
+export const SHOP_PLANTS: readonly PlantSpecies[] = [
+  'daisy',
+  'lavender',
+  'cactus',
+  'poppy',
+  'rose',
+  'lily',
+  'peony',
+  'cherry',
+];
 
 export function ownsPlant(species: PlantSpecies, ownedSeeds: readonly string[] | undefined) {
   return PLANTS[species].price === 0 || (ownedSeeds ?? []).includes(species);

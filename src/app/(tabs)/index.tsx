@@ -31,6 +31,9 @@ import { JourneyCard } from '@/components/home/journey-card';
 import { MaxMoment } from '@/components/home/max-moment';
 import { Toast, useToasts } from '@/components/home/toast';
 import { PrimaryButton } from '@/components/primary-button';
+import { isDecorId } from '@/constants/decor';
+import { PLUS_JOURNEY_BONUS } from '@/constants/plus';
+import { usePlus } from '@/hooks/use-plus';
 import { GardenScene, type DragonMotion, type GardenPlant } from '@/components/scene/garden-scene';
 import { ScrollDepth } from '@/components/scene/scroll-depth';
 import { TrailScene } from '@/components/scene/trail-scene';
@@ -89,22 +92,23 @@ function HomeContent() {
   const window = useWindowDimensions();
   const { sky } = useSky();
   const { setOverride } = useStatusBarOverride();
-  // Light status bar text over a dark sky, only while Home is the focused tab.
-  const lightBar = sky.night > 0.5;
+  const { dragonName, userName, habitIds } = useOnboarding();
+  const companion = useCompanion();
+  const { companion: state, begin, refresh } = companion;
+  const { habits, seed, log, logDone, unlogDone } = useHabits();
+  const toasts = useToasts();
+  const { isPlus } = usePlus();
+  const [hopKey, setHopKey] = useState(0);
+  const [burstKey, setBurstKey] = useState(0);
+  const [storyOpen, setStoryOpen] = useState(false);
+  // The homecoming modal has a dark backdrop even over a daytime garden.
+  const lightBar = storyOpen || sky.night > 0.5;
   useFocusEffect(
     useCallback(() => {
       setOverride(lightBar ? 'light' : 'dark');
       return () => setOverride(null);
     }, [lightBar, setOverride]),
   );
-  const { dragonName, userName, habitIds } = useOnboarding();
-  const companion = useCompanion();
-  const { companion: state, begin, refresh } = companion;
-  const { habits, seed, log, logDone, unlogDone } = useHabits();
-  const toasts = useToasts();
-  const [hopKey, setHopKey] = useState(0);
-  const [burstKey, setBurstKey] = useState(0);
-  const [storyOpen, setStoryOpen] = useState(false);
   const [departing, setDeparting] = useState(false);
   const rootRef = useRef<View>(null);
   const barRef = useRef<View>(null);
@@ -339,7 +343,7 @@ function HomeContent() {
 
   const collect = () => {
     setStoryOpen(false);
-    const events = companion.collectHomecoming();
+    const events = companion.collectHomecoming(isPlus ? PLUS_JOURNEY_BONUS : 0);
     const placed = events.find((e) => e.type === 'giftPlaced');
     if (placed?.type === 'giftPlaced') {
       const name = GIFT_NAMES[placed.spot.prop];
@@ -391,6 +395,7 @@ function HomeContent() {
                 topInset={headerSpace}
                 plants={gardenPlants}
                 gifts={state.garden}
+                decor={(state.ownedItems ?? []).filter(isDecorId)}
                 newGift={newGift}
                 arriving={!!trip}
                 visit={visit}>
@@ -422,6 +427,15 @@ function HomeContent() {
               <View ref={pillRef}>
                 <DiamondPill diamonds={heldDiamonds ?? state.diamonds} />
               </View>
+              <Pressable
+                onPress={() => router.push('/house')}
+                accessibilityRole="button"
+                accessibilityLabel={`${dragonName}'s house`}
+                testID="open-house"
+                hitSlop={8}
+                style={[styles.gear, { backgroundColor: theme.artCard }]}>
+                <ThemedText style={styles.gearIcon}>🏡</ThemedText>
+              </Pressable>
               <Pressable
                 onPress={() => router.push('/settings')}
                 accessibilityRole="button"
@@ -514,6 +528,7 @@ function HomeContent() {
                     done={false}
                     reward={reward}
                     onToggle={() => toggle(habit.id, false)}
+                    reminder={habit.reminder}
                     onTickStart={sendBolts}
                     onEdit={() => editHabit(habit.id)}
                   />
@@ -603,6 +618,7 @@ function HomeContent() {
           story={tellStory(JOURNEY_STORIES[trip.storyIndex], dragonName, trip.gift)}
           diamonds={trip.diamonds}
           welcomeBonus={state.journeysCompleted === 0 ? FIRST_JOURNEY_BONUS : 0}
+          plusBonusRate={isPlus ? PLUS_JOURNEY_BONUS : 0}
           giftName={GIFT_NAMES[trip.gift]}
           onCollect={collect}
         />

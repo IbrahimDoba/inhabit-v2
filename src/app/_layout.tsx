@@ -7,15 +7,18 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { CloudProvider } from '@/hooks/use-cloud';
+import { useCloudAutoSync } from '@/hooks/use-cloud-auto-sync';
 import { CompanionProvider } from '@/hooks/use-companion';
 import { HabitsProvider } from '@/hooks/use-habits';
 import { SkyProvider } from '@/hooks/use-sky';
 import { StatusBarProvider, useStatusBarOverride } from '@/hooks/use-status-bar';
 import { OnboardingProvider, useOnboarding } from '@/hooks/use-onboarding';
+import { PlusProvider } from '@/hooks/use-plus';
 
 // Keep the splash up until the fonts are ready, so text never jumps between faces.
 SplashScreen.preventAutoHideAsync();
@@ -34,10 +37,17 @@ export default function RootLayout() {
     if (ready) SplashScreen.hide();
   }, [ready]);
 
+  // Bumped after a cloud save is written to storage: everything below reloads from it.
+  const [epoch, setEpoch] = useState(0);
+  const reload = useCallback(() => setEpoch((n) => n + 1), []);
+
   // A failed font load falls back to the system font rather than blocking the app.
   if (!ready) return null;
 
   return (
+    <PlusProvider>
+    <CloudProvider onRestore={reload}>
+    <Fragment key={epoch}>
     <OnboardingProvider>
       <CompanionProvider>
         <HabitsProvider>
@@ -49,11 +59,15 @@ export default function RootLayout() {
         </HabitsProvider>
       </CompanionProvider>
     </OnboardingProvider>
+    </Fragment>
+    </CloudProvider>
+    </PlusProvider>
   );
 }
 
 function RootNavigator() {
   const { isComplete } = useOnboarding();
+  useCloudAutoSync();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
   const { override } = useStatusBarOverride();
@@ -82,8 +96,12 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="habit/[id]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="plant/[id]" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="house" options={{ presentation: 'modal' }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="plus" options={{ presentation: 'modal' }} />
         </Stack.Protected>
+        {/* Reachable before and after onboarding: a returning player signs in from the welcome screen. */}
+        <Stack.Screen name="account" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style={override ?? (isDark ? 'light' : 'dark')} />
     </ThemeProvider>

@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { NightShade } from '@/components/scene/night-shade';
 import type { PlantSprite } from '@/constants/plant-sprites';
 
 type HabitPlantProps = {
@@ -22,10 +23,12 @@ type HabitPlantProps = {
   phase: number;
   label: string;
   onPress: () => void;
+  /** 0 by day, 1 at night: dusk settles on the plant. */
+  night?: number;
 };
 
 /** One habit's plant, swaying gently from its base. */
-export function HabitPlant({ sprite, scale, phase, label, onPress }: HabitPlantProps) {
+export function HabitPlant({ sprite, scale, phase, label, onPress, night = 0 }: HabitPlantProps) {
   const reduceMotion = useReducedMotion();
   const sway = useSharedValue(0);
 
@@ -55,6 +58,7 @@ export function HabitPlant({ sprite, scale, phase, label, onPress }: HabitPlantP
           contentFit="contain"
           transition={400}
         />
+        <NightShade source={sprite.source} night={night} />
       </Animated.View>
     </Pressable>
   );

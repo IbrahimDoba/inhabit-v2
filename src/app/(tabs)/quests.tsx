@@ -1,12 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { IconTile } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
+import { gentleIn } from '@/constants/motion';
 import type { QuestStatus } from '@/engine/quests';
 import { useCompanion } from '@/hooks/use-companion';
 import { useNow } from '@/hooks/use-now';
@@ -52,7 +53,7 @@ export default function QuestsScreen() {
         <ThemedText style={styles.gem}>💎</ThemedText>
         <ThemedText type="subtitle">{companion?.diamonds ?? 0}</ThemedText>
         {justClaimed ? (
-          <Animated.View key={justClaimed.id} entering={ZoomIn.springify().damping(10)}>
+          <Animated.View key={justClaimed.id} entering={gentleIn()}>
             <ThemedText type="smallBold" themeColor="primary">
               +{justClaimed.reward}
             </ThemedText>
@@ -250,6 +251,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   pressed: {
-    transform: [{ scale: 0.95 }],
+    transform: [{ scale: 0.97 }],
   },
 });

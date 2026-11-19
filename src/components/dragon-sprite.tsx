@@ -3,6 +3,7 @@ import { StyleSheet, View, type StyleProp } from 'react-native';
 import { useEffect, type ReactNode } from 'react';
 import Animated, {
   Easing,
+  cancelAnimation,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -10,13 +11,16 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import type { Stage } from '@/engine/rules';
+import type { DragonColour } from '@/constants/dragon-colours';
+import { GENERATED_ART, GENERATED_SHAPE } from '@/constants/dragon-generated';
+import type { DragonLook } from '@/lib/dragon-look';
+import { useDragonColour } from '@/hooks/use-dragon-colour';
 
-/** One pose's art: a looping animation and its first frame as a still. */
-type PoseArt = {
-  /** The looping animation; looks still waiting for theirs fall back to `still`. */
-  animated?: number;
-  still: number;
+export { lookForStage } from '@/lib/dragon-look';
+export type { DragonLook } from '@/lib/dragon-look';
+
+/** One pose's shape, the same for every colour. */
+type PoseShape = {
   /** Width / height of the picture. */
   aspect: number;
   /** Where the feet are across the picture (0 = left edge), for lining poses up. */
@@ -25,104 +29,151 @@ type PoseArt = {
   scale?: number;
 };
 
+/** One pose's pictures: a looping animation and its first frame as a still. */
+type PoseArt = {
+  /** The looping animation; looks still waiting for theirs fall back to `still`. */
+  animated?: number;
+  still: number;
+};
+
 export type DragonPose = 'idle' | 'walk' | 'stroll' | 'water' | 'sleep';
 
-/** How the dragon looks as it grows: the baby art, then the young art from its first growth. */
-export type DragonLook = 'baby' | 'young';
-
-/**
- * The full-body dragon, alive. Each pose is a looping transparent animation made
- * from a generated clip (see scripts/video-cutout.py); its first frame is kept as
- * a still for people who prefer reduced motion.
- */
-const ART: Record<DragonLook, Record<DragonPose, PoseArt>> = {
+/** Each pose's shape per look, measured on the lavender art; the recolours match it exactly. */
+const SHAPE: Record<DragonLook, Record<DragonPose, PoseShape>> = {
   baby: {
     /** Standing, facing you: breathes, blinks, tilts its head, swishes its tail. */
-    idle: {
-      animated: require('@/assets/images/dragon/anim/idle.webp'),
-      still: require('@/assets/images/dragon/anim/idle.png'),
-      aspect: 485 / 600,
-      feet: 0.56,
-    },
+    idle: { aspect: 485 / 600, feet: 0.56 },
     /** Walking on the spot with a stick and bundle over its shoulder, facing right. */
-    walk: {
-      animated: require('@/assets/images/dragon/anim/walk.webp'),
-      still: require('@/assets/images/dragon/anim/walk.png'),
-      aspect: 460 / 600,
-      feet: 0.584,
-    },
+    walk: { aspect: 460 / 600, feet: 0.584 },
     /** Walking on the spot empty-handed, facing right: for moving around the garden. */
-    stroll: {
-      animated: require('@/assets/images/dragon/anim/stroll.webp'),
-      still: require('@/assets/images/dragon/anim/stroll.png'),
-      aspect: 453 / 600,
-      feet: 0.418,
-    },
+    stroll: { aspect: 453 / 600, feet: 0.418 },
     /** Watering with a little can, side view facing right; the water falls ahead of it. */
-    water: {
-      animated: require('@/assets/images/dragon/anim/water.webp'),
-      still: require('@/assets/images/dragon/anim/water.png'),
-      aspect: 594 / 600,
-      feet: 0.528,
-    },
+    water: { aspect: 594 / 600, feet: 0.528 },
     /** Curled up asleep, breathing slowly; lower and wider than standing. */
-    sleep: {
-      animated: require('@/assets/images/dragon/anim/sleep.webp'),
-      still: require('@/assets/images/dragon/anim/sleep.png'),
-      aspect: 603 / 400,
-      feet: 0.5,
-      scale: 0.62,
-    },
+    sleep: { aspect: 603 / 400, feet: 0.5, scale: 0.62 },
   },
   // Grown a little: a snout, a long neck, bigger wings.
   young: {
-    idle: {
-      animated: require('@/assets/images/dragon/young/anim-idle.webp'),
-      still: require('@/assets/images/dragon/young/anim-idle.png'),
-      aspect: 545 / 600,
-      feet: 0.498,
+    idle: { aspect: 545 / 600, feet: 0.498 },
+    walk: { aspect: 485 / 600, feet: 0.622 },
+    stroll: { aspect: 548 / 600, feet: 0.636 },
+    water: { aspect: 586 / 600, feet: 0.454 },
+    sleep: { aspect: 1.2264150943396226, feet: 0.5587, scale: 0.55 },
+  },
+  ...GENERATED_SHAPE,
+};
+
+/**
+ * The full-body dragon, alive, per colour and look. Each pose is a looping transparent
+ * animation made from a generated clip or illustrated strip; its first frame is
+ * kept as a still for people who prefer reduced motion. The blue set is the lavender art
+ * recoloured by scripts/recolour.py.
+ */
+const ART: Record<DragonColour, Record<DragonLook, Record<DragonPose, PoseArt>>> = {
+  lavender: {
+    baby: {
+      idle: {
+        animated: require('@/assets/images/dragon/anim/idle.webp'),
+        still: require('@/assets/images/dragon/anim/idle.png'),
+      },
+      walk: {
+        animated: require('@/assets/images/dragon/anim/walk.webp'),
+        still: require('@/assets/images/dragon/anim/walk.png'),
+      },
+      stroll: {
+        animated: require('@/assets/images/dragon/anim/stroll.webp'),
+        still: require('@/assets/images/dragon/anim/stroll.png'),
+      },
+      water: {
+        animated: require('@/assets/images/dragon/anim/water.webp'),
+        still: require('@/assets/images/dragon/anim/water.png'),
+      },
+      sleep: {
+        animated: require('@/assets/images/dragon/anim/sleep.webp'),
+        still: require('@/assets/images/dragon/anim/sleep.png'),
+      },
     },
-    walk: {
-      animated: require('@/assets/images/dragon/young/anim-walk.webp'),
-      still: require('@/assets/images/dragon/young/anim-walk.png'),
-      aspect: 485 / 600,
-      feet: 0.622,
+    young: {
+      idle: {
+        animated: require('@/assets/images/dragon/young/anim-idle.webp'),
+        still: require('@/assets/images/dragon/young/anim-idle.png'),
+      },
+      walk: {
+        animated: require('@/assets/images/dragon/young/anim-walk.webp'),
+        still: require('@/assets/images/dragon/young/anim-walk.png'),
+      },
+      stroll: {
+        animated: require('@/assets/images/dragon/young/anim-stroll.webp'),
+        still: require('@/assets/images/dragon/young/anim-stroll.png'),
+      },
+      water: {
+        animated: require('@/assets/images/dragon/young/anim-water.webp'),
+        still: require('@/assets/images/dragon/young/anim-water.png'),
+      },
+      sleep: {
+        animated: require('@/assets/images/dragon/young/anim-sleep-v2.webp'),
+        still: require('@/assets/images/dragon/young/anim-sleep-v2.png'),
+      },
     },
-    stroll: {
-      animated: require('@/assets/images/dragon/young/anim-stroll.webp'),
-      still: require('@/assets/images/dragon/young/anim-stroll.png'),
-      aspect: 548 / 600,
-      feet: 0.636,
+    ...GENERATED_ART.lavender,
+  },
+  blue: {
+    baby: {
+      idle: {
+        animated: require('@/assets/images/dragon-blue/anim/idle.webp'),
+        still: require('@/assets/images/dragon-blue/anim/idle.png'),
+      },
+      walk: {
+        animated: require('@/assets/images/dragon-blue/anim/walk.webp'),
+        still: require('@/assets/images/dragon-blue/anim/walk.png'),
+      },
+      stroll: {
+        animated: require('@/assets/images/dragon-blue/anim/stroll.webp'),
+        still: require('@/assets/images/dragon-blue/anim/stroll.png'),
+      },
+      water: {
+        animated: require('@/assets/images/dragon-blue/anim/water.webp'),
+        still: require('@/assets/images/dragon-blue/anim/water.png'),
+      },
+      sleep: {
+        animated: require('@/assets/images/dragon-blue/anim/sleep.webp'),
+        still: require('@/assets/images/dragon-blue/anim/sleep.png'),
+      },
     },
-    water: {
-      animated: require('@/assets/images/dragon/young/anim-water.webp'),
-      still: require('@/assets/images/dragon/young/anim-water.png'),
-      aspect: 586 / 600,
-      feet: 0.454,
+    young: {
+      idle: {
+        animated: require('@/assets/images/dragon-blue/young/anim-idle.webp'),
+        still: require('@/assets/images/dragon-blue/young/anim-idle.png'),
+      },
+      walk: {
+        animated: require('@/assets/images/dragon-blue/young/anim-walk.webp'),
+        still: require('@/assets/images/dragon-blue/young/anim-walk.png'),
+      },
+      stroll: {
+        animated: require('@/assets/images/dragon-blue/young/anim-stroll.webp'),
+        still: require('@/assets/images/dragon-blue/young/anim-stroll.png'),
+      },
+      water: {
+        animated: require('@/assets/images/dragon-blue/young/anim-water.webp'),
+        still: require('@/assets/images/dragon-blue/young/anim-water.png'),
+      },
+      sleep: {
+        animated: require('@/assets/images/dragon-blue/young/anim-sleep-v2.webp'),
+        still: require('@/assets/images/dragon-blue/young/anim-sleep-v2.png'),
+      },
     },
-    sleep: {
-      animated: require('@/assets/images/dragon/young/anim-sleep.webp'),
-      still: require('@/assets/images/dragon/young/anim-sleep.png'),
-      aspect: 543 / 400,
-      feet: 0.603,
-      scale: 0.55,
-    },
+    ...GENERATED_ART.blue,
   },
 };
 
-/** The art for a growth stage: babies look like babies, every later stage uses the young art for now. */
-export function lookForStage(stage: Stage): DragonLook {
-  return stage === 'baby' ? 'baby' : 'young';
-}
-
 /** How tall a pose is drawn for a given standing height (lying poses are lower). */
 function poseHeight(pose: DragonPose, height: number, look: DragonLook = 'baby') {
-  return height * (ART[look][pose].scale ?? 1);
+  return height * (SHAPE[look][pose].scale ?? 1);
 }
 
 /** Width of a pose at a given standing height. */
 export function poseWidth(pose: DragonPose, height: number, look: DragonLook = 'baby') {
-  return poseHeight(pose, height, look) * ART[look][pose].aspect;
+  return poseHeight(pose, height, look) * SHAPE[look][pose].aspect;
 }
 
 type DragonSpriteProps = {
@@ -148,7 +199,8 @@ export function DragonSprite({
   look = 'baby',
 }: DragonSpriteProps) {
   const reduceMotion = useReducedMotion();
-  const { animated, still } = ART[look][pose];
+  const colour = useDragonColour();
+  const { animated, still } = ART[colour][look][pose];
   const drawn = poseHeight(pose, height, look);
 
   const image = (
@@ -189,6 +241,8 @@ function StillLife({
   const t = useSharedValue(0);
   const walking = pose === 'walk' || pose === 'stroll';
   useEffect(() => {
+    cancelAnimation(t);
+    t.set(0);
     if (!playing) return;
     t.set(
       withRepeat(
@@ -197,6 +251,7 @@ function StillLife({
         true,
       ),
     );
+    return () => cancelAnimation(t);
   }, [t, walking, playing]);
   const style = useAnimatedStyle(() =>
     walking
@@ -238,7 +293,7 @@ export function DragonPoses({
       {poses.map((p) => {
         const w = poseWidth(p, height, look);
         // Shift so this pose's feet sit at the middle; mirrored poses shift the other way.
-        const feetOffset = (ART[look][p].feet - 0.5) * w * (flip ? -1 : 1);
+        const feetOffset = (SHAPE[look][p].feet - 0.5) * w * (flip ? -1 : 1);
         const shown = p === pose;
         return (
           <View

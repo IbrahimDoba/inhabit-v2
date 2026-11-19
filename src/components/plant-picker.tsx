@@ -15,8 +15,12 @@ const ORDER: readonly PlantSpecies[] = [
   'bellflower',
   'bluebell',
   'daisy',
+  'lavender',
   'cactus',
+  'poppy',
   'rose',
+  'lily',
+  'peony',
   'cherry',
 ];
 

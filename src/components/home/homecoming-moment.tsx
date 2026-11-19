@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
+  cancelAnimation,
   FadeIn,
   FadeInDown,
   useAnimatedStyle,
@@ -29,6 +30,8 @@ type HomecomingMomentProps = {
   story: string;
   diamonds: number;
   welcomeBonus: number;
+  /** Share of the journey's diamonds added for Inhabit Plus members; 0 for none. */
+  plusBonusRate?: number;
   giftName: string;
   onCollect: () => void;
 };
@@ -52,6 +55,7 @@ function Content({
   story,
   diamonds,
   welcomeBonus,
+  plusBonusRate = 0,
   giftName,
   onCollect,
 }: HomecomingMomentProps) {
@@ -68,7 +72,11 @@ function Content({
     const settle = setTimeout(() => setArrived(true), 1400);
     walk.value = withTiming(0, { duration: 1300, easing: Easing.out(Easing.quad) });
     spin.value = withRepeat(withTiming(1, { duration: 30000, easing: Easing.linear }), -1);
-    return () => clearTimeout(settle);
+    return () => {
+      clearTimeout(settle);
+      cancelAnimation(walk);
+      cancelAnimation(spin);
+    };
   }, [walk, spin, reduceMotion]);
 
   const dragonStyle = useAnimatedStyle(() => ({
@@ -81,6 +89,7 @@ function Content({
   }));
 
   const tripDiamonds = diamonds - welcomeBonus;
+  const plusDiamonds = Math.round(tripDiamonds * plusBonusRate);
 
   return (
     <View style={[styles.root, { backgroundColor: theme.momentDark }]}>
@@ -107,13 +116,15 @@ function Content({
 
           <Animated.View
             entering={FadeInDown.delay(1100).duration(450)}
-            style={[styles.story, { backgroundColor: theme.bubble }]}>
-            <ThemedText type="smallBold" themeColor="inkSecondary" style={styles.eyebrow}>
-              TODAY&apos;S ADVENTURE
-            </ThemedText>
-            <ThemedText themeColor="ink" style={styles.storyText}>
-              {story}
-            </ThemedText>
+            style={styles.storyWrapper}>
+            <View style={[styles.story, { backgroundColor: theme.bubble }]}>
+              <ThemedText type="smallBold" themeColor="inkSecondary" style={styles.eyebrow}>
+                TODAY&apos;S ADVENTURE
+              </ThemedText>
+              <ThemedText themeColor="ink" style={styles.storyText}>
+                {story}
+              </ThemedText>
+            </View>
           </Animated.View>
 
           <Animated.View entering={FadeIn.delay(1600).duration(400)} style={styles.rewards}>
@@ -124,6 +135,7 @@ function Content({
                 label={`+${welcomeBonus} welcome bonus for your first adventure`}
               />
             ) : null}
+            {plusDiamonds > 0 ? <Reward emoji="💜" label={`+${plusDiamonds} diamonds with Plus`} /> : null}
             <Reward emoji="🌱" label={`${capitalise(giftName)} for your garden`} />
           </Animated.View>
         </ScrollView>
@@ -186,6 +198,7 @@ const styles = StyleSheet.create({
     top: 90 - 200,
     left: 110 - 200,
   },
+  storyWrapper: { alignSelf: 'stretch' },
   story: {
     alignSelf: 'stretch',
     borderRadius: Radii.lg,

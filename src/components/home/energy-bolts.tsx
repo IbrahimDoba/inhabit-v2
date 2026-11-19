@@ -88,7 +88,7 @@ function Bolt({
     const bend = Math.sin(Math.PI * p);
     const x = from.x + (to.x - from.x) * p + side * bend;
     const y = from.y + (to.y - from.y) * p - lift * bend;
-    const scale = p < 0.15 ? 0.4 + (p / 0.15) * 0.8 : 1.2 - (p - 0.15) * 0.7;
+    const scale = p < 0.15 ? 0.7 + (p / 0.15) * 0.3 : 1 - (p - 0.15) * 0.4;
     return {
       opacity: p === 0 || p >= 1 ? 0 : 1,
       transform: [{ translateX: x - SIZE / 2 }, { translateY: y - SIZE / 2 }, { scale }],

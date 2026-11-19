@@ -3,6 +3,9 @@ import { Asset } from 'expo-asset';
 import { File } from 'expo-file-system';
 
 import type { TodayWidgetProps } from './today-widget';
+import { DRAGON_STILLS } from '@/constants/dragon-stills';
+import type { Stage } from '@/engine/rules';
+import type { DragonColour } from '@/constants/dragon-colours';
 import type { WidgetData } from './widget-data';
 
 /**
@@ -19,15 +22,12 @@ function widgets() {
   /* eslint-enable @typescript-eslint/no-require-imports */
 }
 
-const DRAGON = require('@/assets/images/dragon/anim/idle.png');
-const DRAGON_FILE = 'dragon-idle-v1.png';
-
-/** The widget can't read the app's files, so the dragon is copied to the shared folder once. */
-async function dragonUri(widgetsDirectory: string | null): Promise<string> {
+/** The widget can't read the app's files, so each dragon is copied to the shared folder once. */
+async function dragonUri(widgetsDirectory: string | null, colour: DragonColour, stage: Stage = 'baby'): Promise<string> {
   if (!widgetsDirectory) return '';
-  const file = new File(widgetsDirectory, DRAGON_FILE);
+  const file = new File(widgetsDirectory, `dragon-idle-${colour}-${stage}-v2.png`);
   if (!file.exists) {
-    const asset = await Asset.fromModule(DRAGON).downloadAsync();
+    const asset = await Asset.fromModule(DRAGON_STILLS[colour][stage]).downloadAsync();
     if (!asset.localUri) return '';
     new File(asset.localUri).copy(file);
   }
@@ -48,7 +48,7 @@ export async function syncTodayWidget(data: WidgetData): Promise<void> {
   const w = widgets();
   if (!w) return;
   try {
-    const uri = await dragonUri(w.widgetsDirectory);
+    const uri = await dragonUri(w.widgetsDirectory, data.colour, data.stage);
     const today: TodayWidgetProps = {
       petName: data.petName,
       energy: data.energy,

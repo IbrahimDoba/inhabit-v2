@@ -42,3 +42,20 @@ export function removeSaved(key: string) {
     // Nothing to do.
   }
 }
+
+/** The stored text for a key exactly as written, for copying a save to and from the cloud. */
+export function readRaw(key: string): string | null {
+  try {
+    return store()?.getItem(key) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeRaw(key: string, value: string) {
+  try {
+    store()?.setItem(key, value);
+  } catch {
+    // A failed write must never crash the app.
+  }
+}
