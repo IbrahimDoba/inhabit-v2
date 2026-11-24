@@ -14,7 +14,7 @@ import { useOnboarding } from '@/hooks/use-onboarding';
 import { usePlus } from '@/hooks/use-plus';
 import { useTheme } from '@/hooks/use-theme';
 
-/** The Inhabit Plus page: what it gives, the plans, and restoring a past purchase. */
+/** The DragonDen Plus page: what it gives, the plans, and restoring a past purchase. */
 export default function PlusScreen() {
   const theme = useTheme();
   const { dragonName } = useOnboarding();
@@ -64,7 +64,7 @@ export default function PlusScreen() {
         <View style={styles.hero}>
           <DragonPortrait expression={isPlus ? 'proud' : 'happy'} size={112} />
           <ThemedText type="title" style={styles.center}>
-            {isPlus ? 'You have Inhabit Plus' : 'Inhabit Plus'}
+            {isPlus ? 'You have DragonDen Plus' : 'DragonDen Plus'}
           </ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.center}>
             {isPlus

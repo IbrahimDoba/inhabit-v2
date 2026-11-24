@@ -58,7 +58,7 @@ export function TodayWidget({ data, width, height, dark }: Props) {
         style={{ ...root, justifyContent: 'center', alignItems: 'center' }}>
         <ImageWidget image={DRAGON_STILLS.lavender.baby} imageWidth={64} imageHeight={79} />
         <TextWidget
-          text="Open Inhabit to meet your dragon"
+          text="Open DragonDen Garden to meet your dragon"
           style={{ fontSize: 13, color: c.text }}
         />
       </FlexWidget>

@@ -30,7 +30,7 @@ type HomecomingMomentProps = {
   story: string;
   diamonds: number;
   welcomeBonus: number;
-  /** Share of the journey's diamonds added for Inhabit Plus members; 0 for none. */
+  /** Share of the journey's diamonds added for DragonDen Plus members; 0 for none. */
   plusBonusRate?: number;
   giftName: string;
   onCollect: () => void;

@@ -1,6 +1,6 @@
-# Inhabit API
+# DragonDen Garden API
 
-The backend for the Inhabit app: accounts (sign in with a 6-digit email code) and a
+The backend for the DragonDen Garden app: accounts (sign in with a 6-digit email code) and a
 cloud save per account. Node 22, Hono, Better Auth, Drizzle, Postgres.
 
 ## Endpoints
@@ -19,7 +19,7 @@ cloud save per account. Node 22, Hono, Better Auth, Drizzle, Postgres.
 
 ## Deploy on Dokploy
 
-1. **Project**: create a project, e.g. "Inhabit".
+1. **Project**: create a project, e.g. "DragonDen Garden".
 2. **Database**: in the project, *Create Service → Database → PostgreSQL*. Name it
    `inhabit-db`, database name `inhabit`, pick a user and a strong password, then
    *Deploy*. Copy its **Internal Connection URL** (starts with `postgresql://`).
@@ -37,7 +37,7 @@ cloud save per account. Node 22, Hono, Better Auth, Drizzle, Postgres.
    APP_SCHEME=inhabit
    # Optional until real emails are needed; without it codes appear in the app's logs.
    SMTP_URL=smtps://user:password@smtp.yourmail.com:465
-   MAIL_FROM=Inhabit <no-reply@yourdomain.com>
+   MAIL_FROM=DragonDen Garden <no-reply@yourdomain.com>
    ```
 
 5. **Domain**: *Domains → Add Domain*, host `api.yourdomain.com`, container port

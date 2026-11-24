@@ -319,7 +319,7 @@ export function collectHomecoming(state: CompanionState, now: number, bonusRate 
     events.push({ type: 'diamonds', gained: trip.diamonds - welcome, reason: 'journey' });
   }
   if (welcome > 0) events.push({ type: 'diamonds', gained: welcome, reason: 'welcomeBonus' });
-  // A bonus (Inhabit Plus) is a share of the journey's own diamonds, not of the welcome gift.
+  // A bonus (DragonDen Plus) is a share of the journey's own diamonds, not of the welcome gift.
   const bonus = Math.round((trip.diamonds - welcome) * bonusRate);
   if (bonus > 0) events.push({ type: 'diamonds', gained: bonus, reason: 'plusBonus' });
   events.push({ type: 'giftPlaced', spot, upgraded });

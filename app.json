@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Inhabit",
+    "name": "DragonDen",
     "slug": "inhabit",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -93,6 +93,30 @@
         "usesNonExemptEncryption": false
       },
       "supportsTablet": false
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "ExpoWidgetsTarget",
+                  "bundleIdentifier": "com.ibrahimdoba.inhabit.ExpoWidgetsTarget",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.ibrahimdoba.inhabit"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "7ebdd430-548f-4751-a56a-9f5bb5f7d6fd"
+      }
+    },
+    "owner": "silverfangs123"
   }
 }

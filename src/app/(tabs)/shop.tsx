@@ -34,7 +34,7 @@ type ShopItem = {
   ownedLabel: string;
   thumb: ReactNode;
   onBuy: () => void;
-  /** Only Inhabit Plus members can buy it. */
+  /** Only DragonDen Plus members can buy it. */
   plus?: boolean;
 };
 
@@ -177,7 +177,7 @@ export default function ShopScreen() {
             pressed && styles.pressed,
           ]}>
           <View style={styles.itemText}>
-            <ThemedText type="smallBold">💜 Inhabit Plus</ThemedText>
+            <ThemedText type="smallBold">💜 DragonDen Plus</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               50% more diamonds from every journey, and the Plus collection.
             </ThemedText>
@@ -231,7 +231,7 @@ export default function ShopScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={
                         locked
-                          ? `${item.title} is part of Inhabit Plus`
+                          ? `${item.title} is part of DragonDen Plus`
                           : `Buy ${item.title} for ${item.price} diamonds`
                       }
                       testID={`buy-${item.key}`}

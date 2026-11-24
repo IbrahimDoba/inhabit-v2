@@ -1,5 +1,5 @@
 /**
- * Inhabit design tokens, matching the dragon: lavender, mint, warm gold and plum.
+ * DragonDen Garden design tokens, matching the dragon: lavender, mint, warm gold and plum.
  * `ink`, `inkSecondary`, `artCard`, `groundShadow`, `crack`, `burst`, `bubble` and the `moment*` colours are for
  * drawing on the daytime artwork or full-bleed celebration screens; those screens pin the
  * light scheme.

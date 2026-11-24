@@ -1,6 +1,6 @@
 /** The web build has no store. Same surface as `purchases.ts`, all no-ops. */
 
-export const PLUS_ENTITLEMENT = 'plus';
+export const PLUS_ENTITLEMENT = 'inhabit_plus';
 export const purchasesAvailable = false;
 
 export type PlusPlan = {

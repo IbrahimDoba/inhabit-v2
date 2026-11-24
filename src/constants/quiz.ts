@@ -1,6 +1,6 @@
 /**
  * Onboarding quiz, after Finch's structure (four sections, follow-ups driven by
- * the chosen support areas) in Inhabit's own words. `{pet}` is replaced with the
+ * the chosen support areas) in DragonDen Garden's own words. `{pet}` is replaced with the
  * dragon's name. Answers never leave the phone.
  */
 

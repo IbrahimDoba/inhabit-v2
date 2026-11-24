@@ -1,4 +1,4 @@
-/** What Inhabit Plus gives. Change the offer here, not in the screens. */
+/** What DragonDen Plus gives. Change the offer here, not in the screens. */
 
 /** Extra diamonds a Plus dragon brings home from each journey, as a share of the journey's own. */
 export const PLUS_JOURNEY_BONUS = 0.5;

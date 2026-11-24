@@ -16,7 +16,7 @@ export default function WelcomeScreen() {
       <SafeAreaView style={styles.root}>
         <View style={styles.header}>
           <ThemedText type="title" themeColor="ink" style={styles.wordmark}>
-            Inhabit
+            DragonDen Garden
           </ThemedText>
           <ThemedText themeColor="inkSecondary" style={styles.center}>
             A baby dragon is waiting to meet you. Look after your habits and it grows up with you.
@@ -65,8 +65,9 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.five,
   },
   wordmark: {
-    fontSize: 44,
-    lineHeight: 50,
+    fontSize: 36,
+    lineHeight: 42,
+    textAlign: 'center',
   },
   center: {
     textAlign: 'center',

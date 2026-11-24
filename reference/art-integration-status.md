@@ -1,6 +1,6 @@
 # Asset integration audit — 2026-11-17
 
-This is the Inhabit **v2** Expo app at `/Users/apple/dev/hatchling`
+This is the DragonDen Garden (formerly Inhabit **v2**) Expo app at `/Users/apple/dev/hatchling`
 (`IbrahimDoba/inhabit-v2`). The old Swift garden assets in
 `~/Documents/dev/inhabit` are a different art direction and are not used here.
 

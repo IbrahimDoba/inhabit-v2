@@ -1,4 +1,4 @@
-# Inhabit asset list (draft, 2026-09-27)
+# DragonDen Garden asset list (draft, 2026-09-27)
 
 Companion: baby dragon. Palette: lavender #B8A9E8, mint #A9E5C1, warm gold #F2C14E, plum #3B2A4A.
 Style: soft flat 2D illustration with gentle shading, no outlines or sticker borders. Every piece must be generated from the approved character sheet so the dragon looks the same everywhere.

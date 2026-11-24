@@ -1,4 +1,4 @@
-# Inhabit API. Dokploy builds this from the repo: Build Path "server", Dockerfile "Dockerfile".
+# DragonDen Garden API. Dokploy builds this from the repo: Build Path "server", Dockerfile "Dockerfile".
 FROM node:22-alpine AS build
 WORKDIR /app
 RUN corepack enable

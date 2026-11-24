@@ -2,7 +2,7 @@
 
 Source: the user's 10-minute iPhone recording of Finch v3.73 (Sep 27, 2026), from first launch through onboarding into the app. Re-read frame by frame on 2026-09-27; the full screen-by-screen notes, with every option and on-screen line verbatim, are in `reference/finch-notes/` (four files in time order).
 
-Reference only. Inhabit copies structure and mechanics, never Finch's wording, art or names.
+Reference only. DragonDen Garden copies structure and mechanics, never Finch's wording, art or names.
 
 ## 1. Onboarding, in order (0:00 to 5:48)
 

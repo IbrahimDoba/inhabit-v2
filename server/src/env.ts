@@ -16,7 +16,7 @@ export const env = {
   port: Number(process.env.PORT ?? 3000),
   /** smtp://user:pass@host:587 (or smtps://…:465). Without it, sign-in codes are only logged. */
   smtpUrl: process.env.SMTP_URL ?? '',
-  mailFrom: process.env.MAIL_FROM ?? 'Inhabit <no-reply@localhost>',
+  mailFrom: process.env.MAIL_FROM ?? 'DragonDen Garden <no-reply@localhost>',
   /** The app's URL scheme (app.json "scheme"), trusted for sign-in. */
   appScheme: process.env.APP_SCHEME ?? 'inhabit',
   /** Shown on the privacy page as the contact address. Optional. */

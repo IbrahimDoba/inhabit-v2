@@ -15,7 +15,7 @@ import { loadSaved, save } from '@/lib/storage';
 const DEV_KEY = 'inhabit.devPlus';
 
 type PlusContextValue = {
-  /** Inhabit Plus is active (or pretended, in development). */
+  /** DragonDen Plus is active (or pretended, in development). */
   isPlus: boolean;
   /** False when this build has no store key: nothing can be bought. */
   available: boolean;
@@ -32,7 +32,7 @@ type PlusContextValue = {
 
 const PlusContext = createContext<PlusContextValue | null>(null);
 
-/** Knows whether Inhabit Plus is active, and sells it. */
+/** Knows whether DragonDen Plus is active, and sells it. */
 export function PlusProvider({ children }: { children: ReactNode }) {
   const [member, setMember] = useState(false);
   const [plans, setPlans] = useState<PlusPlan[] | null>(purchasesAvailable ? null : []);

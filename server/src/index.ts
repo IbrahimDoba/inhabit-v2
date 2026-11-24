@@ -49,5 +49,5 @@ app.onError((err, c) => {
 const migrationsFolder = fileURLToPath(new URL('../drizzle', import.meta.url));
 await migrate(db, { migrationsFolder });
 serve({ fetch: app.fetch, port: env.port }, (info) => {
-  console.log(`Inhabit API listening on :${info.port}`);
+  console.log(`DragonDen Garden API listening on :${info.port}`);
 });

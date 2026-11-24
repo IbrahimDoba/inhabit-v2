@@ -1,6 +1,6 @@
-# Inhabit art plan: everything we might generate
+# DragonDen Garden art plan: everything we might generate
 
-The complete wish list of art for Inhabit, written 2026-11-11 for the Higgsfield
+The complete wish list of art for DragonDen Garden, written 2026-11-11 for the Higgsfield
 unlimited trial (ends **2026-11-14 07:46 UTC**). Nothing here is decided yet: read it,
 cross out what you don't want, and the rest becomes the generation brief.
 

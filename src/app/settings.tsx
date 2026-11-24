@@ -110,7 +110,7 @@ export default function SettingsScreen() {
             { backgroundColor: theme.primarySoft, borderColor: theme.primarySoft },
             pressed && styles.pressed,
           ]}>
-          <ThemedText type="smallBold">{plus.isPlus ? '💜 Inhabit Plus is on' : '💜 Inhabit Plus'}</ThemedText>
+          <ThemedText type="smallBold">{plus.isPlus ? '💜 DragonDen Plus is on' : '💜 DragonDen Plus'}</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             {plus.isPlus
               ? 'More diamonds from every journey, and the Plus collection in the shop.'
@@ -221,7 +221,7 @@ export default function SettingsScreen() {
             </View>
 
             <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <ThemedText type="smallBold">Inhabit Plus</ThemedText>
+              <ThemedText type="smallBold">DragonDen Plus</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 Pretend to be a member without the store. {plus.available ? 'This build has a store key.' : 'This build has no store key.'}
               </ThemedText>

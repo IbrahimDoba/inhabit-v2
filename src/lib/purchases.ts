@@ -1,6 +1,6 @@
 /**
- * In-app purchases through RevenueCat. One subscription, Inhabit Plus, unlocked
- * by the `plus` entitlement.
+ * In-app purchases through RevenueCat. One subscription, DragonDen Plus, unlocked
+ * by the `inhabit_plus` entitlement.
  *
  * The public SDK keys come from `EXPO_PUBLIC_REVENUECAT_IOS_KEY` and
  * `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`. Without a key (web, or a build made
@@ -12,7 +12,7 @@ import { Platform } from 'react-native';
 import Purchases, { type CustomerInfo, type PurchasesPackage } from 'react-native-purchases';
 
 /** The entitlement id set up in the RevenueCat dashboard. */
-export const PLUS_ENTITLEMENT = 'plus';
+export const PLUS_ENTITLEMENT = 'inhabit_plus';
 
 const API_KEY = Platform.select({
   ios: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,

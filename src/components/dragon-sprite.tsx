@@ -166,6 +166,12 @@ const ART: Record<DragonColour, Record<DragonLook, Record<DragonPose, PoseArt>>>
   },
 };
 
+/** Poses drawn as one held picture with code breathing, because their loop is too rough to play. */
+const HELD_STILL: Partial<Record<DragonLook, readonly DragonPose[]>> = {
+  teen: ['sleep'],
+  grown: ['sleep'],
+};
+
 /** How tall a pose is drawn for a given standing height (lying poses are lower). */
 function poseHeight(pose: DragonPose, height: number, look: DragonLook = 'baby') {
   return height * (SHAPE[look][pose].scale ?? 1);
@@ -200,7 +206,12 @@ export function DragonSprite({
 }: DragonSpriteProps) {
   const reduceMotion = useReducedMotion();
   const colour = useDragonColour();
-  const { animated, still } = ART[colour][look][pose];
+  const art = ART[colour][look][pose];
+  const still = art.still;
+  // The teen and grown sleeping loops are four separate drawings, so playing them makes the
+  // whole body jump between frames. Hold the first drawing and breathe in code instead.
+  // (Their standing loops are made smooth by scripts/breathing-idle.py.)
+  const animated = HELD_STILL[look]?.includes(pose) ? undefined : art.animated;
   const drawn = poseHeight(pose, height, look);
 
   const image = (
@@ -246,13 +257,16 @@ function StillLife({
     if (!playing) return;
     t.set(
       withRepeat(
-        withTiming(1, { duration: walking ? 340 : 1800, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1, {
+          duration: walking ? 340 : pose === 'sleep' ? 2600 : 1800,
+          easing: Easing.inOut(Easing.sin),
+        }),
         -1,
         true,
       ),
     );
     return () => cancelAnimation(t);
-  }, [t, walking, playing]);
+  }, [t, walking, pose, playing]);
   const style = useAnimatedStyle(() =>
     walking
       ? { transform: [{ translateY: -t.get() * 5 }, { rotate: `${(t.get() - 0.5) * 2}deg` }] }

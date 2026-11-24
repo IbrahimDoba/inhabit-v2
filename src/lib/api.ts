@@ -1,5 +1,5 @@
 /**
- * The Inhabit server: sign-in by emailed code (Better Auth) and one cloud save
+ * The DragonDen Garden server: sign-in by emailed code (Better Auth) and one cloud save
  * per account. The session is kept in the phone's secure storage.
  */
 

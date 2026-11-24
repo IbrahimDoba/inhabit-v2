@@ -28,7 +28,7 @@ type CompanionContextValue = {
   completeHabit: (habitId: string) => CompanionEvent[];
   undoHabit: (habitId: string) => CompanionEvent[];
   startJourney: () => CompanionEvent[];
-  /** `bonusRate` adds a share of the journey's diamonds on top (Inhabit Plus). */
+  /** `bonusRate` adds a share of the journey's diamonds on top (DragonDen Plus). */
   collectHomecoming: (bonusRate?: number) => CompanionEvent[];
   /** Catches up with the clock: a new day, or a journey that just ended. */
   refresh: () => CompanionEvent[];

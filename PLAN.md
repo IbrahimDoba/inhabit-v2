@@ -1,11 +1,11 @@
-# Inhabit: build plan
+# DragonDen Garden (formerly Inhabit): build plan
 
 Status: plan v2, rewritten 2026-09-27 around the Inhabit concept. Supersedes the Hatchling plan (kept in `reference/hatchling-plan-v1.md`).
 Pace: one step at a time. Each step ends with something visible, then waits for a go-ahead.
 
 ## 1. The idea in one paragraph
 
-Inhabit is a habit app where a small companion creature lives with you in a garden.
+DragonDen Garden is a habit app where a small companion creature lives with you in a garden.
 Every habit you keep is a plant in that garden. When you do a habit, the companion tends it and gains a little energy.
 A full day of care sends the companion out on a short journey, and it comes back with one gift for the garden.
 Over weeks the companion grows up and the garden fills in. Nothing ever shames you: plants rest, they never die, and the companion is always glad to see you.

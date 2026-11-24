@@ -13,10 +13,10 @@ export async function sendSignInCode(email: string, code: string) {
   await transport.sendMail({
     from: env.mailFrom,
     to: email,
-    subject: `${code} is your Inhabit code`,
-    text: `Your Inhabit sign-in code is ${code}.\n\nIt works for 10 minutes. If you did not ask for it, you can ignore this email.`,
+    subject: `${code} is your DragonDen Garden code`,
+    text: `Your DragonDen Garden sign-in code is ${code}.\n\nIt works for 10 minutes. If you did not ask for it, you can ignore this email.`,
     html: `<div style="font-family:system-ui,sans-serif;color:#2A2140">
-      <p>Your Inhabit sign-in code is</p>
+      <p>Your DragonDen Garden sign-in code is</p>
       <p style="font-size:32px;font-weight:700;letter-spacing:6px;margin:8px 0">${code}</p>
       <p style="color:#6F678A">It works for 10 minutes. If you did not ask for it, you can ignore this email.</p>
     </div>`,

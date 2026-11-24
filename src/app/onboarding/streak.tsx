@@ -128,7 +128,7 @@ export default function StreakScreen() {
             ))}
           </View>
           <ThemedText style={[styles.center, { color: theme.onMoment }]}>
-            Great start! Open Inhabit tomorrow and {dragonName} will make it two.
+            Great start! Open DragonDen Garden tomorrow and {dragonName} will make it two.
           </ThemedText>
         </Animated.View>
       ) : null}

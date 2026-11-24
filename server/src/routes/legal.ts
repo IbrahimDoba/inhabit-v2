@@ -14,7 +14,7 @@ function page(title: string, body: string) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>${title} · Inhabit</title>
+<title>${title} · DragonDen Garden</title>
 <style>
   body { font: 17px/1.6 -apple-system, system-ui, sans-serif; max-width: 40rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
   h1 { font-size: 1.8rem; line-height: 1.2; }
@@ -31,15 +31,15 @@ ${body}
 legalRoutes.get('/privacy', (c) => {
   const contact = env.supportEmail
     ? `<p>Questions or requests: <a href="mailto:${env.supportEmail}">${env.supportEmail}</a>.</p>`
-    : '<p>Questions or requests: use the support link on the Inhabit page in the App Store.</p>';
+    : '<p>Questions or requests: use the support link on the DragonDen Garden page in the App Store.</p>';
 
   return c.html(
     page(
       'Privacy',
-      `<h1>Inhabit privacy policy</h1>
+      `<h1>DragonDen Garden privacy policy</h1>
 <small>Last updated ${UPDATED}</small>
 
-<p>Inhabit is a habit app with a dragon and a garden. It is built so that what you do in it stays with you.</p>
+<p>DragonDen Garden is a habit app with a dragon and a garden. It is built so that what you do in it stays with you.</p>
 
 <h2>What stays on your phone</h2>
 <p>Your habits, your history, your dragon, your garden, the names you type and the answers you give when you set the app up are saved on your phone. Unless you add an email address (below), we do not receive them and cannot see them, and deleting the app deletes them.</p>
@@ -52,13 +52,13 @@ legalRoutes.get('/privacy', (c) => {
 <p>Reminders are scheduled on your phone. Nothing is sent to us to deliver them.</p>
 
 <h2>Purchases</h2>
-<p>If you buy Inhabit Plus, the payment is handled by Apple. We never see your card or your Apple ID. To know whether a subscription is active we use RevenueCat, which receives an anonymous id made for the app on your phone, what was bought and when, and basic device details such as the country and the version of the app. It does not receive your name, your habits or anything you have written.</p>
+<p>If you buy DragonDen Plus, the payment is handled by Apple. We never see your card or your Apple ID. To know whether a subscription is active we use RevenueCat, which receives an anonymous id made for the app on your phone, what was bought and when, and basic device details such as the country and the version of the app. It does not receive your name, your habits or anything you have written.</p>
 
 <h2>What we do not do</h2>
 <p>No advertising, no tracking across other apps or websites, no selling of data, and no analytics about how you use the app.</p>
 
 <h2>Children</h2>
-<p>Inhabit does not knowingly collect personal information from anyone, including children.</p>
+<p>DragonDen Garden does not knowingly collect personal information from anyone, including children.</p>
 
 <h2>Changes</h2>
 <p>If the app starts to do something this page does not describe, this page will be updated before that reaches you.</p>

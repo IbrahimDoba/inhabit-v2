@@ -42,7 +42,7 @@ export function ReminderPicker({ value, timeOfDay, onChange }: ReminderPickerPro
       return;
     }
     if (!(await requestReminderPermission())) {
-      setNote('Notifications are off for Inhabit. Turn them on in your phone’s Settings to get reminders.');
+      setNote('Notifications are off for DragonDen Garden. Turn them on in your phone’s Settings to get reminders.');
       return;
     }
     onChange(defaultReminderTime(timeOfDay));

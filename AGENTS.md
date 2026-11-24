@@ -40,7 +40,7 @@ Docs: https://docs.expo.dev/eas/index.md
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
 
-## Inhabit project notes (repo folder is still `hatchling`)
+## DragonDen Garden project notes (formerly Inhabit v2; repo folder is still `hatchling`, and the bundle id, URL scheme, storage keys and server address keep the `inhabit` name)
 
 - Start by reading `SUMMARY.md`, then `PLAN.md`.
 - The build plan is `PLAN.md`. Work one step at a time and wait for the user's go-ahead between steps.
