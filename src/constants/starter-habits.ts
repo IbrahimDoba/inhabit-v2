@@ -6,6 +6,8 @@ export { ENERGY_PER_HABIT };
 export const BABY_FULL_BAR = STAGE_RULES.baby.fullBar;
 /** Enough habits to fill the baby's bar on day one. */
 export const STARTER_HABIT_COUNT = BABY_FULL_BAR / ENERGY_PER_HABIT;
+/** The most habits a starter plan holds; more than this is too much for a first week. */
+export const MAX_STARTER_HABITS = 5;
 
 export type StarterHabit = {
   id: string;

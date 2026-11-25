@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { StarterHabits } from '@/constants/starter-habits';
+import { withDefaultReminders } from '@/lib/habit-reminders';
 import { EVERY_DAY, newHabitId, type Habit } from '@/lib/habits';
 import { loadSaved, removeSaved, save } from '@/lib/storage';
 
@@ -17,8 +18,13 @@ export type HabitDraft = Omit<Habit, 'id' | 'createdAt'>;
 type HabitsContextValue = {
   /** `null` until the starter habits have been copied in. */
   habits: Habit[] | null;
-  /** Turns the starter habits picked in onboarding into real habits, once. */
-  seed: (starterIds: readonly string[]) => void;
+  /**
+   * Turns the starter habits picked in onboarding into real habits, once. With
+   * `reminders`, each gets a reminder at its time of day.
+   */
+  seed: (starterIds: readonly string[], reminders?: boolean) => void;
+  /** Gives every habit that has no reminder one at its time of day. */
+  addDefaultReminders: () => void;
   add: (draft: HabitDraft) => Habit;
   update: (id: string, draft: HabitDraft) => void;
   remove: (id: string) => void;
@@ -49,12 +55,12 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
   const value = useMemo<HabitsContextValue>(
     () => ({
       habits,
-      seed: (starterIds) =>
+      seed: (starterIds, reminders = false) =>
         setHabits((current) => {
           if (current) return current;
           const now = Date.now();
           // Starter ids stay as habit ids, so today's ticks from before still match.
-          return StarterHabits.filter((s) => starterIds.includes(s.id)).map((s) => ({
+          const seeded: Habit[] = StarterHabits.filter((s) => starterIds.includes(s.id)).map((s) => ({
             id: s.id,
             title: s.label,
             emoji: s.emoji,
@@ -62,7 +68,9 @@ export function HabitsProvider({ children }: { children: ReactNode }) {
             days: [...EVERY_DAY],
             createdAt: now,
           }));
+          return reminders ? withDefaultReminders(seeded) : seeded;
         }),
+      addDefaultReminders: () => setHabits((current) => (current ? withDefaultReminders(current) : current)),
       add: (draft) => {
         const now = Date.now();
         const habit: Habit = { ...draft, title: draft.title.trim(), id: newHabitId(now), createdAt: now };

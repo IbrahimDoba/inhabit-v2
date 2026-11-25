@@ -32,7 +32,7 @@ const GOALS: readonly Goal[] = [
 
 export default function StreakGoalScreen() {
   const theme = useTheme();
-  const { dragonName, habitIds, streakGoal, setStreakGoal, complete } = useOnboarding();
+  const { dragonName, habitIds, reminderId, streakGoal, setStreakGoal, complete } = useOnboarding();
   const { begin } = useCompanion();
   const { seed } = useHabits();
   const selected = GOALS.find((goal) => goal.days === streakGoal);
@@ -45,7 +45,8 @@ export default function StreakGoalScreen() {
           label={selected ? "I'm in!" : 'Pick a goal'}
           onPress={() => {
             begin();
-            seed(habitIds);
+            // Unless reminders were declined, each habit reminds at its own time of day.
+            seed(habitIds, reminderId !== 'none');
             complete();
           }}
           disabled={!selected}

@@ -104,6 +104,27 @@ export function defaultReminderTime(timeOfDay: Habit['timeOfDay']): string {
   ];
 }
 
+/** Minutes between habits that would otherwise remind at the same moment. */
+export const REMINDER_STAGGER_MINUTES = 15;
+
+/**
+ * Gives every habit without a reminder one at its time of day. Habits that share a
+ * time are spaced a little apart, so the phone does not buzz three times at once.
+ * Habits that already have a reminder are left alone.
+ */
+export function withDefaultReminders<T extends Pick<Habit, 'timeOfDay' | 'reminder'>>(
+  habits: readonly T[],
+): T[] {
+  const taken = new Set(habits.map((h) => h.reminder).filter(Boolean));
+  return habits.map((habit) => {
+    if (habit.reminder) return habit;
+    let time = defaultReminderTime(habit.timeOfDay);
+    while (taken.has(time)) time = shiftTime(time, REMINDER_STAGGER_MINUTES);
+    taken.add(time);
+    return { ...habit, reminder: time };
+  });
+}
+
 /** Quick picks offered for each time of day. */
 export const REMINDER_PRESETS: Record<Habit['timeOfDay'], readonly string[]> = {
   morning: ['07:00', '08:00', '09:00'],

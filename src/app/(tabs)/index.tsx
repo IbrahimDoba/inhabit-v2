@@ -92,7 +92,7 @@ function HomeContent() {
   const window = useWindowDimensions();
   const { sky } = useSky();
   const { setOverride } = useStatusBarOverride();
-  const { dragonName, userName, habitIds } = useOnboarding();
+  const { dragonName, userName, habitIds, streakGoal } = useOnboarding();
   const companion = useCompanion();
   const { companion: state, begin, refresh } = companion;
   const { habits, seed, log, logDone, unlogDone } = useHabits();
@@ -421,6 +421,10 @@ function HomeContent() {
                 themeColor={nightText ? undefined : 'inkSecondary'}
                 style={nightText ? { color: theme.onMomentMuted } : undefined}>
                 Day {daysBetween(state.hatchedOn, dayKey(now)) + 1} with {dragonName}
+                {' · 🔥 '}
+                {streakGoal && state.streak < streakGoal
+                  ? `${state.streak} of ${streakGoal} days`
+                  : `${state.streak}-day streak`}
               </ThemedText>
             </View>
             <View style={styles.headerRight}>

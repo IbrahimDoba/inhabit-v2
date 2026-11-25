@@ -20,6 +20,8 @@ import { ThemedText } from '@/components/themed-text';
 import { HABIT_EMOJI, SUGGESTION_GROUPS } from '@/constants/habit-suggestions';
 import { Fonts, MaxContentWidth, Radii, Spacing } from '@/constants/theme';
 import { useHabits, type HabitDraft } from '@/hooks/use-habits';
+import { defaultReminderTime } from '@/lib/habit-reminders';
+import { requestReminderPermission } from '@/lib/reminders';
 import { useTheme } from '@/hooks/use-theme';
 import {
   describeDays,
@@ -62,7 +64,15 @@ export default function HabitEditorScreen() {
           plant: existing.plant,
           reminder: existing.reminder,
         }
-      : { title: '', emoji: '✨', timeOfDay: time ?? 'any', days: [...EVERY_DAY], plant: 'sunflower' },
+      : {
+          title: '',
+          emoji: '✨',
+          timeOfDay: time ?? 'any',
+          days: [...EVERY_DAY],
+          plant: 'sunflower',
+          // New habits remind by default; it can be switched off below.
+          reminder: defaultReminderTime(time ?? 'any'),
+        },
   );
   const [group, setGroup] = useState(SUGGESTION_GROUPS[0].id);
   const [showEmoji, setShowEmoji] = useState(false);
@@ -70,7 +80,18 @@ export default function HabitEditorScreen() {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const set = (patch: Partial<HabitDraft>) => {
-    setDraft((d) => ({ ...d, ...patch }));
+    setDraft((d) => {
+      const next = { ...d, ...patch };
+      // A reminder still at its time of day's default follows a change of time of day.
+      if (
+        patch.timeOfDay &&
+        patch.reminder === undefined &&
+        d.reminder === defaultReminderTime(d.timeOfDay)
+      ) {
+        next.reminder = defaultReminderTime(patch.timeOfDay);
+      }
+      return next;
+    });
     setError(null);
   };
 
@@ -89,6 +110,8 @@ export default function HabitEditorScreen() {
     }
     if (existing) update(existing.id, draft);
     else add(draft);
+    // A reminder needs permission to show; ask now if it was never asked. Declining keeps the habit.
+    if (draft.reminder) void requestReminderPermission();
     close();
   };
 
