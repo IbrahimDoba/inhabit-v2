@@ -14,6 +14,7 @@ ENV NODE_ENV=production PORT=3000
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY drizzle ./drizzle
+COPY public ./public
 COPY package.json ./
 USER node
 EXPOSE 3000

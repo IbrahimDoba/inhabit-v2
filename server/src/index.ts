@@ -1,6 +1,8 @@
 import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 import { fileURLToPath } from 'node:url';
 
@@ -9,6 +11,8 @@ import { db, pool } from './db/index.js';
 import { env } from './env.js';
 import { legalRoutes } from './routes/legal.js';
 import { saveRoutes } from './routes/save.js';
+import { siteRoutes } from './routes/site.js';
+import { waitlistRoutes } from './routes/waitlist.js';
 import type { AppEnv } from './types.js';
 
 const app = new Hono<AppEnv>();
@@ -20,7 +24,19 @@ app.get('/health', async (c) => {
   return c.json({ ok: true });
 });
 
-// Public pages: the privacy policy.
+// The website's pictures and fonts (server/public). They only change with a deploy.
+const assets = serveStatic({
+  root: './public',
+  onFound: (_path, c) => c.header('Cache-Control', 'public, max-age=604800'),
+});
+app.use('/img/*', assets);
+app.use('/fonts/*', assets);
+app.use('/favicon.png', assets);
+app.use('/apple-touch-icon.png', assets);
+
+// Public pages: the home page, the waitlist, the privacy policy and support.
+app.route('/', siteRoutes);
+app.route('/', waitlistRoutes);
 app.route('/', legalRoutes);
 
 // Sign-in, sign-out, sessions and account deletion: all handled by Better Auth.
@@ -41,6 +57,8 @@ app.get('/v1/me', (c) => {
 app.route('/v1/save', saveRoutes);
 
 app.onError((err, c) => {
+  // Deliberate answers such as the password prompt for the waitlist download.
+  if (err instanceof HTTPException) return err.getResponse();
   console.error(err);
   return c.json({ error: 'Something went wrong on our side.' }, 500);
 });

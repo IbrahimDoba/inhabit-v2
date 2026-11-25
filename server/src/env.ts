@@ -13,6 +13,10 @@ export const env = {
   authSecret: required('BETTER_AUTH_SECRET'),
   /** Where this server is reachable from the app, e.g. https://api.example.com */
   publicUrl: required('BETTER_AUTH_URL'),
+  /** Where the website is reachable, e.g. https://dragonden.garden. Defaults to the API address. */
+  siteUrl: (process.env.SITE_URL || required('BETTER_AUTH_URL')).replace(/\/$/, ''),
+  /** Password for downloading the waitlist at /admin/waitlist.csv (user name: admin). Off when empty. */
+  adminPassword: process.env.ADMIN_PASSWORD ?? '',
   port: Number(process.env.PORT ?? 3000),
   /** smtp://user:pass@host:587 (or smtps://…:465). Without it, sign-in codes are only logged. */
   smtpUrl: process.env.SMTP_URL ?? '',

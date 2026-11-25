@@ -8,6 +8,13 @@
       "when": 1793181453063,
       "tag": "0000_stale_mephisto",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795605281137,
+      "tag": "0001_open_quicksilver",
+      "breakpoints": true
     }
   ]
 }

@@ -22,3 +22,20 @@ export async function sendSignInCode(email: string, code: string) {
     </div>`,
   });
 }
+
+/** Confirms a waitlist sign-up. Does nothing without SMTP configured. */
+export async function sendWaitlistWelcome(email: string, unsubscribeUrl: string) {
+  if (!transport) return;
+  await transport.sendMail({
+    from: env.mailFrom,
+    to: email,
+    subject: 'You are on the DragonDen Garden waitlist',
+    text: `Thank you for joining the DragonDen Garden waitlist.\n\nWe will email you when the app is in the App Store.\n\nChanged your mind? Leave the list here: ${unsubscribeUrl}`,
+    html: `<div style="font-family:system-ui,sans-serif;color:#2A2140">
+      <p>Thank you for joining the DragonDen Garden waitlist.</p>
+      <p>We will email you when the app is in the App Store.</p>
+      <p style="color:#6F678A">Changed your mind? <a href="${unsubscribeUrl}">Leave the list</a>.</p>
+    </div>`,
+    headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` },
+  });
+}

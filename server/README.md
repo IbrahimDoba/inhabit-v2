@@ -1,12 +1,18 @@
 # DragonDen Garden API
 
 The backend for the DragonDen Garden app: accounts (sign in with a 6-digit email code) and a
-cloud save per account. Node 22, Hono, Better Auth, Drizzle, Postgres.
+cloud save per account. It also serves the public website: the home page with its waitlist
+form, the privacy policy and the support page. Node 22, Hono, Better Auth, Drizzle, Postgres.
 
 ## Endpoints
 
 | Method | Path | What it does |
 | --- | --- | --- |
+| GET | `/` | The website's home page (`src/site/landing.ts`; pictures and fonts in `public/`) |
+| POST | `/waitlist` | Adds `{email, newsletter}` to the waitlist. Five tries per address every 10 minutes |
+| GET, POST | `/unsubscribe?token=` | The link in waitlist emails; deletes the address |
+| GET | `/admin/waitlist.csv` | The waitlist as a spreadsheet. User `admin`, password `ADMIN_PASSWORD`; off when that is unset |
+| GET | `/privacy`, `/support` | The pages the app and its store listing link to |
 | GET | `/health` | `{"ok":true}` when the server and database are up |
 | POST | `/api/auth/email-otp/send-verification-otp` | Emails a sign-in code (`{"email","type":"sign-in"}`) |
 | POST | `/api/auth/sign-in/email-otp` | Signs in with the code (`{"email","otp"}`); creates the account the first time |
@@ -38,6 +44,11 @@ cloud save per account. Node 22, Hono, Better Auth, Drizzle, Postgres.
    # Optional until real emails are needed; without it codes appear in the app's logs.
    SMTP_URL=smtps://user:password@smtp.yourmail.com:465
    MAIL_FROM=DragonDen Garden <no-reply@yourdomain.com>
+   # Optional: the website's own address, the contact on the privacy and support pages,
+   # and the password for downloading the waitlist.
+   SITE_URL=https://yourdomain.com
+   SUPPORT_EMAIL=hello@yourdomain.com
+   ADMIN_PASSWORD=<a long password>
    ```
 
 5. **Domain**: *Domains → Add Domain*, host `api.yourdomain.com`, container port
